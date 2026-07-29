@@ -21,6 +21,17 @@ export async function saveThemingSettings(values) {
 	return response.data
 }
 
+export async function uploadThemingImage(key, file) {
+	const formData = new FormData()
+	formData.append('file', file)
+	const response = await axios.post(
+		generateUrl(`/apps/govmailbranding/theming-image/${key}`),
+		formData,
+		{ headers: { 'Content-Type': 'multipart/form-data' } },
+	)
+	return response.data
+}
+
 export async function uploadMedia(slot, file) {
 	const formData = new FormData()
 	formData.append('file', file)

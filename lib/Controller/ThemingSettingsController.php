@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\GovMailBranding\Controller;
 
 use OCA\GovMailBranding\Service\ThemingBridgeService;
+use OCA\Theming\ImageManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -15,10 +16,18 @@ use OCP\IUserSession;
 class ThemingSettingsController extends Controller {
 	private const URL_KEYS = ['theming_web_link', 'theming_legal_notice', 'theming_privacy_policy'];
 
+	private const IMAGE_KEY_MAP = [
+		'logo' => 'logo',
+		'header_logo' => 'logoheader',
+		'favicon' => 'favicon',
+		'background' => 'background',
+	];
+
 	public function __construct(
 		string $appName,
 		IRequest $request,
 		private ThemingBridgeService $themingBridge,
+		private ImageManager $themingImageManager,
 		private IUserSession $userSession,
 		private IGroupManager $groupManager,
 	) {
@@ -37,7 +46,16 @@ class ThemingSettingsController extends Controller {
 		if ($denied = $this->requireAdmin()) {
 			return $denied;
 		}
-		return new JSONResponse($this->themingBridge->getAll());
+
+		$images = [];
+		foreach (self::IMAGE_KEY_MAP as $ourKey => $themingKey) {
+			$images[$ourKey] = $this->themingImageManager->getImageUrl($themingKey);
+		}
+
+		return new JSONResponse([
+			'values' => $this->themingBridge->getAll(),
+			'images' => $images,
+		]);
 	}
 
 	/**

@@ -23,9 +23,11 @@
 			<ThemingTab
 				v-else-if="activeTab === 'theming'"
 				:values="values"
+				:images="themingImages"
 				:errors="errors"
 				:saving="saving"
 				@update="onFieldUpdate"
+				@upload="onThemingImageUpload"
 				@save="(keys) => onSave(keys, 'theming')" />
 			<div v-else class="govmailbranding-settings__placeholder">
 				This section is coming soon.
@@ -40,7 +42,7 @@
 
 <script>
 import { loadState } from '@nextcloud/initial-state'
-import { fetchSettings, saveSettings, fetchThemingSettings, saveThemingSettings, uploadMedia } from '../services/SettingsService.js'
+import { fetchSettings, saveSettings, fetchThemingSettings, saveThemingSettings, uploadMedia, uploadThemingImage } from '../services/SettingsService.js'
 import GeneralBrandingTab from './tabs/GeneralBrandingTab.vue'
 import ThemingTab from './tabs/ThemingTab.vue'
 
@@ -65,6 +67,7 @@ export default {
 			tabs: TABS,
 			activeTab: 'general',
 			values: loadState('govmailbranding', 'settings') || {},
+			themingImages: {},
 			errors: {},
 			saving: false,
 			saveMessage: '',
@@ -77,7 +80,8 @@ export default {
 		async refreshSettings() {
 			try {
 				const [ours, theming] = await Promise.all([fetchSettings(), fetchThemingSettings()])
-				this.values = { ...this.values, ...ours, ...theming }
+				this.values = { ...this.values, ...ours, ...theming.values }
+				this.themingImages = { ...this.themingImages, ...theming.images }
 			} catch (e) {
 				// initial state already seeded this.values with sane defaults; safe to ignore
 			}
@@ -92,6 +96,15 @@ export default {
 				this.saveMessage = 'Image uploaded.'
 			} catch (e) {
 				this.saveMessage = 'Image upload failed.'
+			}
+		},
+		async onThemingImageUpload(key, file) {
+			try {
+				const result = await uploadThemingImage(key, file)
+				this.$set(this.themingImages, key, result.url)
+				this.saveMessage = 'Image uploaded and applied instance-wide.'
+			} catch (e) {
+				this.saveMessage = (e.response && e.response.data && e.response.data.error) || 'Image upload failed.'
 			}
 		},
 		async onSave(keys, target = 'general') {

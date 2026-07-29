@@ -22,11 +22,19 @@
 
 		<fieldset>
 			<legend>Images</legend>
-			<p class="theming-tab__coming-soon">
-				Logo, Header Logo, Favicon, and Background Image are managed by
-				Nextcloud's Theming app directly for now — integrating uploads here
-				is tracked as a follow-up task.
+			<p class="theming-tab__note">
+				These upload directly into Nextcloud's Theming app storage and take
+				effect instance-wide immediately.
 			</p>
+			<div v-for="field in imageFields" :key="field.key" class="field-row image-field">
+				<label>{{ field.label }}</label>
+				<img
+					v-if="images[field.key]"
+					:src="images[field.key]"
+					class="image-preview"
+					:alt="field.label">
+				<input type="file" accept="image/*" @change="(e) => handleFile(field.key, e)">
+			</div>
 		</fieldset>
 
 		<button type="submit" :disabled="saving">
@@ -44,19 +52,34 @@ const TEXT_FIELDS = [
 	{ key: 'theming_privacy_policy', label: 'Privacy Policy', type: 'url' },
 ]
 
+const IMAGE_FIELDS = [
+	{ key: 'logo', label: 'Logo' },
+	{ key: 'header_logo', label: 'Header Logo' },
+	{ key: 'favicon', label: 'Favicon' },
+	{ key: 'background', label: 'Background Image' },
+]
+
 export default {
 	name: 'ThemingTab',
 	props: {
 		values: { type: Object, required: true },
+		images: { type: Object, default: () => ({}) },
 		errors: { type: Object, default: () => ({}) },
 		saving: { type: Boolean, default: false },
 	},
 	data() {
 		return {
 			textFields: TEXT_FIELDS,
+			imageFields: IMAGE_FIELDS,
 		}
 	},
 	methods: {
+		handleFile(key, event) {
+			const file = event.target.files[0]
+			if (file) {
+				this.$emit('upload', key, file)
+			}
+		},
 		handleSave() {
 			const keys = this.textFields.map((f) => f.key)
 			this.$emit('save', keys)
@@ -72,11 +95,23 @@ export default {
 	border-radius: var(--border-radius, 6px);
 	font-size: 13px;
 	color: var(--color-main-text);
-	margin-bottom: 24px;
+	margin-bottom: 16px;
 }
-.theming-tab__coming-soon {
-	color: var(--color-text-maxcontrast);
+.image-field {
+	margin-bottom: 20px;
+}
+.image-field input[type='file'] {
 	font-size: 13px;
+}
+.image-preview {
+	display: block;
+	max-width: 150px;
+	max-height: 80px;
+	object-fit: contain;
+	margin-bottom: 8px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius, 6px);
+	padding: 4px;
 }
 .field-row {
 	margin-bottom: 20px;
