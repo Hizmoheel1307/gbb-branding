@@ -39,6 +39,31 @@
 			</div>
 		</fieldset>
 
+		<fieldset>
+			<legend>Footer Visibility</legend>
+			<label class="checkbox-row">
+				<input
+					type="checkbox"
+					:checked="values.email_hide_promo_banner === '1'"
+					@change="$emit('update', 'email_hide_promo_banner', $event.target.checked ? '1' : '')">
+				Hide Nextcloud Promotion Banner
+			</label>
+			<label class="checkbox-row">
+				<input
+					type="checkbox"
+					:checked="values.email_hide_community_footer === '1'"
+					@change="$emit('update', 'email_hide_community_footer', $event.target.checked ? '1' : '')">
+				Hide Community Footer
+			</label>
+			<label class="checkbox-row">
+				<input
+					type="checkbox"
+					:checked="values.email_hide_social_links === '1'"
+					@change="$emit('update', 'email_hide_social_links', $event.target.checked ? '1' : '')">
+				Hide Social Media Links
+			</label>
+		</fieldset>
+
 		<button type="submit" :disabled="saving">
 			{{ saving ? 'Saving…' : 'Save Email Branding' }}
 		</button>
@@ -46,7 +71,10 @@
 </template>
 
 <script>
-const KEYS = ['email_footer', 'email_signature', 'email_social_links']
+const KEYS = [
+	'email_footer', 'email_signature', 'email_social_links',
+	'email_hide_promo_banner', 'email_hide_community_footer', 'email_hide_social_links',
+]
 
 export default {
 	name: 'EmailBrandingTab',
@@ -114,6 +142,18 @@ fieldset {
 	border: none;
 	padding: 0;
 	margin: 0 0 24px;
+}
+.checkbox-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	margin-bottom: 12px;
+	cursor: pointer;
+}
+.checkbox-row input[type='checkbox'] {
+	width: auto;
+	margin: 0;
 }
 button[type='submit'] {
 	width: 100%;

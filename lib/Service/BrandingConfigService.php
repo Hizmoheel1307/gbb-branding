@@ -32,6 +32,7 @@ class BrandingConfigService {
 		// Email Branding (logo/header color intentionally NOT here - see
 		// Theming tab, which already controls what emails inherit)
 		'email_footer', 'email_signature', 'email_social_links',
+		'email_hide_promo_banner', 'email_hide_community_footer', 'email_hide_social_links',
 
 		// Custom code
 		'custom_css', 'custom_js',
