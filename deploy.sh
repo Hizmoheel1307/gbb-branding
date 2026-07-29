@@ -34,7 +34,7 @@ read -p "Commit changes? (y/N): " answer
 if [[ "$answer" =~ ^[Yy]$ ]]; then
     read -p "Commit message: " msg
     git add .
-    git commit -m "$msg"
+    git commit -m "$msg" || echo "Nothing new to commit, continuing..."
 fi
 
 echo

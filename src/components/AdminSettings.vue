@@ -101,36 +101,51 @@ export default {
 </script>
 
 <style scoped>
+.govmailbranding-settings {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 0 16px;
+}
 .govmailbranding-settings__tabs {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
 	border-bottom: 1px solid var(--color-border);
-	margin-bottom: 16px;
+	margin-bottom: 24px;
+	padding-bottom: 0;
 }
 .govmailbranding-settings__tab {
 	background: none;
 	border: none;
-	padding: 8px 12px;
+	padding: 10px 16px;
 	cursor: pointer;
 	border-bottom: 2px solid transparent;
 	color: var(--color-text-maxcontrast);
+	font-size: 14px;
+	white-space: nowrap;
 }
 .govmailbranding-settings__tab.active {
 	border-bottom-color: var(--color-primary-element);
 	color: var(--color-main-text);
 	font-weight: bold;
 }
+.govmailbranding-settings__panel {
+	max-width: 500px;
+	margin: 0 auto;
+}
 .govmailbranding-settings__placeholder {
-	padding: 24px;
+	padding: 40px 24px;
+	text-align: center;
 	color: var(--color-text-maxcontrast);
 }
 .govmailbranding-settings__message {
-	margin-top: 12px;
+	margin: 16px auto 0;
 	padding: 8px 12px;
 	background: var(--color-success, #46ba61);
 	color: #fff;
 	border-radius: var(--border-radius, 4px);
-	display: inline-block;
+	display: block;
+	text-align: center;
+	max-width: 500px;
 }
 </style>

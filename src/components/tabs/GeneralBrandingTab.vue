@@ -99,36 +99,92 @@ export default {
 </script>
 
 <style scoped>
+.general-branding-tab {
+	width: 100%;
+}
 .field-row {
-	margin-bottom: 12px;
+	margin-bottom: 20px;
 	display: flex;
 	flex-direction: column;
-	max-width: 400px;
+	width: 100%;
 }
 .field-row label {
 	font-weight: 600;
-	margin-bottom: 4px;
+	margin-bottom: 6px;
+	font-size: 14px;
+}
+.field-row input[type='text'],
+.field-row input[type='email'],
+.field-row input[type='url'],
+.field-row textarea {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 10px 12px;
+	border: 1px solid var(--color-border-dark, #d4d4d4);
+	border-radius: var(--border-radius, 6px);
+	font-size: 14px;
+	background: var(--color-main-background, #fff);
+	color: var(--color-main-text, #222);
+	transition: border-color 0.15s ease;
+}
+.field-row input:focus,
+.field-row textarea:focus {
+	outline: none;
+	border-color: var(--color-primary-element, #0082c9);
+	box-shadow: 0 0 0 2px rgba(0, 130, 201, 0.15);
+}
+.field-row textarea {
+	min-height: 90px;
+	resize: vertical;
+	font-family: inherit;
 }
 .field-error {
-	color: var(--color-error);
+	color: var(--color-error, #e9322d);
 	font-size: 0.85em;
-	margin: 2px 0 0;
+	margin: 6px 0 0;
+}
+.image-field input[type='file'] {
+	font-size: 13px;
 }
 .image-preview {
 	max-width: 150px;
 	max-height: 80px;
 	object-fit: contain;
-	margin-bottom: 6px;
+	margin-bottom: 8px;
 	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius, 6px);
+	padding: 4px;
 }
 fieldset {
 	border: none;
 	padding: 0;
-	margin: 0 0 24px;
+	margin: 0 0 32px;
 }
 legend {
-	font-size: 1.1em;
+	font-size: 16px;
 	font-weight: bold;
-	margin-bottom: 8px;
+	margin-bottom: 16px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--color-border);
+	width: 100%;
+}
+button[type='submit'] {
+	width: 100%;
+	padding: 12px;
+	font-size: 14px;
+	font-weight: 600;
+	border: none;
+	border-radius: var(--border-radius, 6px);
+	background: var(--color-primary-element, #0082c9);
+	color: #fff;
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+}
+button[type='submit']:hover:not(:disabled) {
+	opacity: 0.9;
+}
+button[type='submit']:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
 }
 </style>
