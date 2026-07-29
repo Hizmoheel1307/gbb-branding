@@ -33,7 +33,7 @@
 
 <script>
 import { loadState } from '@nextcloud/initial-state'
-import { saveSettings, uploadMedia } from '../services/SettingsService.js'
+import { fetchSettings, saveSettings, uploadMedia } from '../services/SettingsService.js'
 import GeneralBrandingTab from './tabs/GeneralBrandingTab.vue'
 
 const TABS = [
@@ -62,7 +62,18 @@ export default {
 			saveMessage: '',
 		}
 	},
+	mounted() {
+		this.refreshSettings()
+	},
 	methods: {
+		async refreshSettings() {
+			try {
+				const fresh = await fetchSettings()
+				this.values = { ...this.values, ...fresh }
+			} catch (e) {
+				// initial state already seeded this.values with sane defaults; safe to ignore
+			}
+		},
 		onFieldUpdate(key, value) {
 			this.$set(this.values, key, value)
 		},
