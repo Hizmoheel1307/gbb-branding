@@ -1,0 +1,55 @@
+name: Deploy to Nextcloud Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+
+            APP_NAME="govmailbranding"
+            NEXTCLOUD="/var/www/nextcloud"
+            APP_DIR="$NEXTCLOUD/apps/$APP_NAME"
+            REPO_URL="https://github.com/Hizmoheel1307/gbb-branding.git"
+
+            echo "Backing up current app (if present)..."
+            mkdir -p /tmp/backups
+            if [ -d "$APP_DIR" ]; then
+              tar -czf "/tmp/backups/${APP_NAME}.$(date +%Y%m%d%H%M%S).tar.gz" -C "$NEXTCLOUD/apps" "$APP_NAME"
+            fi
+
+            if [ -d "$APP_DIR/.git" ]; then
+              echo "Repo exists, pulling latest main..."
+              cd "$APP_DIR"
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              echo "No existing repo, cloning fresh..."
+              rm -rf "$APP_DIR"
+              git clone "$REPO_URL" "$APP_DIR"
+              cd "$APP_DIR"
+            fi
+
+            echo "Installing PHP dependencies..."
+            composer install --no-dev --optimize-autoloader
+
+            echo "Fixing ownership..."
+            chown -R www-data:www-data "$APP_DIR"
+
+            echo "Enabling app..."
+            sudo -u www-data php "$NEXTCLOUD/occ" app:disable "$APP_NAME" || true
+            sudo -u www-data php "$NEXTCLOUD/occ" app:enable "$APP_NAME"
+            sudo -u www-data php "$NEXTCLOUD/occ" maintenance:repair
+
+            echo "Deployment complete."
