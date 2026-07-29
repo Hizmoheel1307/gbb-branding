@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\GovMailBranding\AppInfo;
 
 use OCA\GovMailBranding\Listener\LoginPageListener;
+use OCA\GovMailBranding\Listener\GlobalStyleListener;
 use OCA\GovMailBranding\Mail\BrandedEmailTemplate;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
@@ -27,6 +28,7 @@ class Application extends App implements IBootstrap {
 	 */
 	public function register(IRegistrationContext $context): void {
 		$context->registerEventListener(BeforeTemplateRenderedEvent::class, LoginPageListener::class);
+		$context->registerEventListener(BeforeTemplateRenderedEvent::class, GlobalStyleListener::class);
 		$this->registerBrandedMailTemplate();
 	}
 

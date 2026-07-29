@@ -27,54 +27,26 @@ class BrandedEmailTemplate extends EMailTemplate {
 			return;
 		}
 
-		$hidePromoBanner = $this->getBoolConfig('email_hide_promo_banner');
-		$hideCommunityFooter = $this->getBoolConfig('email_hide_community_footer');
-		$hideSocialLinks = $this->getBoolConfig('email_hide_social_links');
-
 		$configuredText = trim((string)$this->getConfiguredFooterText());
 		$signature = trim((string)$this->getConfiguredSignature());
 
-		// Base text priority: our configured footer text first; otherwise
-		// fall back to whatever the calling app passed in, unless the promo
-		// banner is hidden, in which case we never use the caller's text.
-		if ($configuredText !== '') {
-			$baseText = $configuredText;
-		} elseif (!$hidePromoBanner && trim((string)$text) !== '') {
-			$baseText = (string)$text;
-		} else {
-			$baseText = '';
-		}
-
+		$finalText = $configuredText !== '' ? $configuredText : $text;
 		if ($signature !== '') {
-			$baseText = $baseText !== '' ? $baseText . '<br>' . $signature : $signature;
-		}
-
-		$finalText = $baseText;
-		if ($finalText === '' && $hideCommunityFooter) {
-			// parent::addFooter() treats an empty string as "use my own
-			// built-in default line" - passing a harmless non-empty value
-			// blocks that default from ever appearing.
-			$finalText = '&nbsp;';
+			$finalText = $finalText !== '' ? $finalText . '<br>' . $signature : $signature;
 		}
 
 		parent::addFooter($finalText, $lang);
 
-		if (!$hideSocialLinks) {
-			$socialLinksHtml = $this->buildSocialLinksHtml();
-			if ($socialLinksHtml !== '') {
-				// Append social links after the standard footer content, inside
-				// the same closing structure parent::addFooter() already built.
-				$this->htmlBody = str_replace(
-					'</body>',
-					'<div style="text-align:center;padding:8px 0;">' . $socialLinksHtml . '</div></body>',
-					$this->htmlBody
-				);
-			}
+		$socialLinksHtml = $this->buildSocialLinksHtml();
+		if ($socialLinksHtml !== '') {
+			// Append social links after the standard footer content, inside
+			// the same closing structure parent::addFooter() already built.
+			$this->htmlBody = str_replace(
+				'</body>',
+				'<div style="text-align:center;padding:8px 0;">' . $socialLinksHtml . '</div></body>',
+				$this->htmlBody
+			);
 		}
-	}
-
-	private function getBoolConfig(string $key): bool {
-		return \OC::$server->getConfig()->getAppValue('govmailbranding', $key, '') === '1';
 	}
 
 	private function getConfiguredFooterText(): string {

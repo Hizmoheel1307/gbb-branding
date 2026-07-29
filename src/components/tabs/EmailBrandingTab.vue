@@ -40,7 +40,11 @@
 		</fieldset>
 
 		<fieldset>
-			<legend>Footer Visibility</legend>
+			<legend>Personal Settings Page</legend>
+			<p class="field-hint" style="margin-top:-8px;">
+				These hide Nextcloud's own promo banner, credit line, and social
+				icons on the user's Personal Settings page — not the email footer above.
+			</p>
 			<label class="checkbox-row">
 				<input
 					type="checkbox"
