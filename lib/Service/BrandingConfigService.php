@@ -16,12 +16,9 @@ class BrandingConfigService {
 	 * Image fields store a filename (see MediaController) not raw data.
 	 */
 	private const KEYS = [
-		// General Branding
+		// General Branding (our own data, not tied to Nextcloud core)
 		'general_portal_name', 'general_company_name', 'general_support_email',
 		'general_support_phone', 'general_website', 'general_footer_text',
-		'general_application_name', 'general_web_link', 'general_slogan',
-		'general_legal_notice', 'general_privacy_policy',
-		'general_logo', 'general_header_logo', 'general_favicon', 'general_background_image',
 
 		// Login Branding
 		'login_title', 'login_subtitle', 'login_background', 'login_logo',

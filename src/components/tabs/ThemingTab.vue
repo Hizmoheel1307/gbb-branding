@@ -1,16 +1,15 @@
 <template>
-	<form class="general-branding-tab" @submit.prevent="handleSave">
+	<form class="theming-tab" @submit.prevent="handleSave">
+		<p class="theming-tab__note">
+			These fields write directly into Nextcloud's own Theming settings —
+			saving here changes the branding your users see across the whole instance.
+		</p>
+
 		<fieldset>
-			<legend>General Info</legend>
+			<legend>Instance Identity</legend>
 			<div v-for="field in textFields" :key="field.key" class="field-row">
 				<label :for="field.key">{{ field.label }}</label>
-				<textarea
-					v-if="field.type === 'textarea'"
-					:id="field.key"
-					:value="values[field.key]"
-					@input="$emit('update', field.key, $event.target.value)" />
 				<input
-					v-else
 					:id="field.key"
 					:type="field.type || 'text'"
 					:value="values[field.key]"
@@ -21,24 +20,32 @@
 			</div>
 		</fieldset>
 
+		<fieldset>
+			<legend>Images</legend>
+			<p class="theming-tab__coming-soon">
+				Logo, Header Logo, Favicon, and Background Image are managed by
+				Nextcloud's Theming app directly for now — integrating uploads here
+				is tracked as a follow-up task.
+			</p>
+		</fieldset>
+
 		<button type="submit" :disabled="saving">
-			{{ saving ? 'Saving…' : 'Save General Branding' }}
+			{{ saving ? 'Saving…' : 'Save Theming' }}
 		</button>
 	</form>
 </template>
 
 <script>
 const TEXT_FIELDS = [
-	{ key: 'general_portal_name', label: 'Portal Name' },
-	{ key: 'general_company_name', label: 'Company Name' },
-	{ key: 'general_support_email', label: 'Support Email', type: 'email' },
-	{ key: 'general_support_phone', label: 'Support Phone' },
-	{ key: 'general_website', label: 'Website', type: 'url' },
-	{ key: 'general_footer_text', label: 'Footer Text', type: 'textarea' },
+	{ key: 'theming_application_name', label: 'Application Name' },
+	{ key: 'theming_web_link', label: 'Web Link', type: 'url' },
+	{ key: 'theming_slogan', label: 'Slogan' },
+	{ key: 'theming_legal_notice', label: 'Legal Notice', type: 'url' },
+	{ key: 'theming_privacy_policy', label: 'Privacy Policy', type: 'url' },
 ]
 
 export default {
-	name: 'GeneralBrandingTab',
+	name: 'ThemingTab',
 	props: {
 		values: { type: Object, required: true },
 		errors: { type: Object, default: () => ({}) },
@@ -59,8 +66,17 @@ export default {
 </script>
 
 <style scoped>
-.general-branding-tab {
-	width: 100%;
+.theming-tab__note {
+	background: var(--color-primary-element-light, #e8f3f8);
+	padding: 12px 16px;
+	border-radius: var(--border-radius, 6px);
+	font-size: 13px;
+	color: var(--color-main-text);
+	margin-bottom: 24px;
+}
+.theming-tab__coming-soon {
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
 }
 .field-row {
 	margin-bottom: 20px;
@@ -73,10 +89,7 @@ export default {
 	margin-bottom: 6px;
 	font-size: 14px;
 }
-.field-row input[type='text'],
-.field-row input[type='email'],
-.field-row input[type='url'],
-.field-row textarea {
+.field-row input {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 10px 12px;
@@ -85,35 +98,16 @@ export default {
 	font-size: 14px;
 	background: var(--color-main-background, #fff);
 	color: var(--color-main-text, #222);
-	transition: border-color 0.15s ease;
 }
-.field-row input:focus,
-.field-row textarea:focus {
+.field-row input:focus {
 	outline: none;
 	border-color: var(--color-primary-element, #0082c9);
 	box-shadow: 0 0 0 2px rgba(0, 130, 201, 0.15);
-}
-.field-row textarea {
-	min-height: 90px;
-	resize: vertical;
-	font-family: inherit;
 }
 .field-error {
 	color: var(--color-error, #e9322d);
 	font-size: 0.85em;
 	margin: 6px 0 0;
-}
-.image-field input[type='file'] {
-	font-size: 13px;
-}
-.image-preview {
-	max-width: 150px;
-	max-height: 80px;
-	object-fit: contain;
-	margin-bottom: 8px;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 6px);
-	padding: 4px;
 }
 fieldset {
 	border: none;
@@ -138,10 +132,6 @@ button[type='submit'] {
 	background: var(--color-primary-element, #0082c9);
 	color: #fff;
 	cursor: pointer;
-	transition: opacity 0.15s ease;
-}
-button[type='submit']:hover:not(:disabled) {
-	opacity: 0.9;
 }
 button[type='submit']:disabled {
 	opacity: 0.6;

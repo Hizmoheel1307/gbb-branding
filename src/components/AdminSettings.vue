@@ -19,7 +19,14 @@
 				:saving="saving"
 				@update="onFieldUpdate"
 				@upload="onImageUpload"
-				@save="onSave" />
+				@save="(keys) => onSave(keys, 'general')" />
+			<ThemingTab
+				v-else-if="activeTab === 'theming'"
+				:values="values"
+				:errors="errors"
+				:saving="saving"
+				@update="onFieldUpdate"
+				@save="(keys) => onSave(keys, 'theming')" />
 			<div v-else class="govmailbranding-settings__placeholder">
 				This section is coming soon.
 			</div>
@@ -33,8 +40,9 @@
 
 <script>
 import { loadState } from '@nextcloud/initial-state'
-import { fetchSettings, saveSettings, uploadMedia } from '../services/SettingsService.js'
+import { fetchSettings, saveSettings, fetchThemingSettings, saveThemingSettings, uploadMedia } from '../services/SettingsService.js'
 import GeneralBrandingTab from './tabs/GeneralBrandingTab.vue'
+import ThemingTab from './tabs/ThemingTab.vue'
 
 const TABS = [
 	{ id: 'general', label: 'General Branding' },
@@ -51,7 +59,7 @@ const TABS = [
 
 export default {
 	name: 'AdminSettings',
-	components: { GeneralBrandingTab },
+	components: { GeneralBrandingTab, ThemingTab },
 	data() {
 		return {
 			tabs: TABS,
@@ -68,8 +76,8 @@ export default {
 	methods: {
 		async refreshSettings() {
 			try {
-				const fresh = await fetchSettings()
-				this.values = { ...this.values, ...fresh }
+				const [ours, theming] = await Promise.all([fetchSettings(), fetchThemingSettings()])
+				this.values = { ...this.values, ...ours, ...theming }
 			} catch (e) {
 				// initial state already seeded this.values with sane defaults; safe to ignore
 			}
@@ -86,7 +94,7 @@ export default {
 				this.saveMessage = 'Image upload failed.'
 			}
 		},
-		async onSave(keys) {
+		async onSave(keys, target = 'general') {
 			this.saving = true
 			this.errors = {}
 			this.saveMessage = ''
@@ -95,7 +103,11 @@ export default {
 				payload[k] = this.values[k] ?? ''
 			})
 			try {
-				await saveSettings(payload)
+				if (target === 'theming') {
+					await saveThemingSettings(payload)
+				} else {
+					await saveSettings(payload)
+				}
 				this.saveMessage = 'Settings saved.'
 			} catch (e) {
 				if (e.response && e.response.data && e.response.data.errors) {

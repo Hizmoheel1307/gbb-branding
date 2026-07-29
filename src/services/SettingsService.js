@@ -11,6 +11,16 @@ export async function saveSettings(values) {
 	return response.data
 }
 
+export async function fetchThemingSettings() {
+	const response = await axios.get(generateUrl('/apps/govmailbranding/theming-settings'))
+	return response.data
+}
+
+export async function saveThemingSettings(values) {
+	const response = await axios.post(generateUrl('/apps/govmailbranding/theming-settings'), { values })
+	return response.data
+}
+
 export async function uploadMedia(slot, file) {
 	const formData = new FormData()
 	formData.append('file', file)
