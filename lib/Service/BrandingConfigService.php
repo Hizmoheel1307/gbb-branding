@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\GovMailBranding\Service;
+
+use OCP\IConfig;
+
+class BrandingConfigService {
+	private const APP_ID = 'govmailbranding';
+
+	/**
+	 * Whitelist of every setting key this app persists, grouped by tab.
+	 * Keys not in this list are silently ignored by set() to avoid
+	 * arbitrary appconfig writes from a malformed request.
+	 * Image fields store a filename (see MediaController) not raw data.
+	 */
+	private const KEYS = [
+		// General Branding
+		'general_portal_name', 'general_company_name', 'general_support_email',
+		'general_support_phone', 'general_website', 'general_footer_text',
+		'general_application_name', 'general_web_link', 'general_slogan',
+		'general_legal_notice', 'general_privacy_policy',
+		'general_logo', 'general_header_logo', 'general_favicon', 'general_background_image',
+
+		// Login Branding
+		'login_title', 'login_subtitle', 'login_background', 'login_logo',
+
+		// Colors
+		'color_primary', 'color_background', 'color_header', 'color_accent',
+
+		// Footer
+		'footer_copyright', 'footer_company', 'footer_links', 'footer_version',
+
+		// Email Branding
+		'email_logo', 'email_header', 'email_footer', 'email_signature', 'email_social_links',
+
+		// Custom code
+		'custom_css', 'custom_js',
+	];
+
+	public function __construct(
+		private IConfig $config,
+	) {
+	}
+
+	public function getAll(): array {
+		$values = [];
+		foreach (self::KEYS as $key) {
+			$values[$key] = $this->config->getAppValue(self::APP_ID, $key, '');
+		}
+		return $values;
+	}
+
+	public function get(string $key): ?string {
+		if (!in_array($key, self::KEYS, true)) {
+			return null;
+		}
+		return $this->config->getAppValue(self::APP_ID, $key, '');
+	}
+
+	/**
+	 * @param array<string, string> $values
+	 * @return array<string, string> the values actually accepted/saved
+	 */
+	public function setMany(array $values): array {
+		$saved = [];
+		foreach ($values as $key => $value) {
+			if (!in_array($key, self::KEYS, true)) {
+				continue; // ignore unknown keys rather than erroring the whole request
+			}
+			$this->config->setAppValue(self::APP_ID, $key, (string)$value);
+			$saved[$key] = (string)$value;
+		}
+		return $saved;
+	}
+
+	public function isKnownKey(string $key): bool {
+		return in_array($key, self::KEYS, true);
+	}
+}

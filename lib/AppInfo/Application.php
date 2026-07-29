@@ -17,14 +17,12 @@ class Application extends App implements IBootstrap {
 	}
 
 	/**
-	 * Register services, listeners, and admin settings sections here
-	 * as they're built out in Milestone 2 and 3.
+	 * Settings\Admin and Settings\AdminSection are registered declaratively
+	 * in appinfo/info.xml (<settings> block) and autowired by Nextcloud's
+	 * DI container, so nothing to register here for those. This stays
+	 * available for services/listeners as Milestone 3 needs them.
 	 */
 	public function register(IRegistrationContext $context): void {
-		// Example (uncomment when the settings class exists):
-		// $context->registerService(BrandingService::class, function ($c) {
-		//     return new BrandingService($c->get(IConfig::class));
-		// });
 	}
 
 	/**

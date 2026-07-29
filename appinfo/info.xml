@@ -13,4 +13,8 @@
     <dependencies>
         <nextcloud min-version="28" max-version="34"/>
     </dependencies>
+    <settings>
+        <admin>OCA\GovMailBranding\Settings\Admin</admin>
+        <admin-section>OCA\GovMailBranding\Settings\AdminSection</admin-section>
+    </settings>
 </info>
