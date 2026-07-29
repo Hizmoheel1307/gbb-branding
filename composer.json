@@ -1,0 +1,8 @@
+{
+    "name": "gbb/branding",
+    "autoload": {
+        "psr-4": {
+            "OCA\\GBBBranding\\": "lib/"
+        }
+    }
+}
