@@ -11,6 +11,6 @@
     <namespace>GovMailBranding</namespace>
     <category>customization</category>
     <dependencies>
-        <nextcloud min-version="28" max-version="30"/>
+        <nextcloud min-version="28" max-version="34"/>
     </dependencies>
 </info>
