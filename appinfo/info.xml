@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>gbb_branding</id>
-    <name>GBB Branding</name>
+    <id>govmailbranding</id>
+    <name>GovMail Branding</name>
     <summary>Custom branding for Nextcloud (theme, logo, email branding)</summary>
     <description>Applies custom branding across the Nextcloud UI and outgoing emails.</description>
     <version>0.0.1</version>
     <licence>agpl</licence>
     <author>Your Name</author>
-    <namespace>GBBBranding</namespace>
+    <namespace>GovMailBranding</namespace>
     <category>customization</category>
     <dependencies>
         <nextcloud min-version="28" max-version="30"/>

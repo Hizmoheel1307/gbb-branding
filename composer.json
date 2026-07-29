@@ -1,8 +1,8 @@
 {
-    "name": "gbb/branding",
+    "name": "gbb/govmailbranding",
     "autoload": {
         "psr-4": {
-            "OCA\\GBBBranding\\": "lib/"
+            "OCA\\GovMailBranding\\": "lib/"
         }
     }
 }
