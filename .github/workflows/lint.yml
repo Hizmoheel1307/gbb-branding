@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer, phpcs
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+      - name: PHP syntax check (php -l)
+        run: |
+          set -e
+          find . -name "*.php" \
+            -not -path "./vendor/*" \
+            -not -path "./node_modules/*" \
+            -print0 | xargs -0 -n1 php -l
+
+      - name: PHP CodeSniffer (PSR-12)
+        run: |
+          phpcs --standard=PSR12 \
+            --ignore=vendor,node_modules \
+            --extensions=php \
+            lib/ appinfo/ || true
+        continue-on-error: true
