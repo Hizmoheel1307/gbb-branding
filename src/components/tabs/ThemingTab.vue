@@ -21,6 +21,20 @@
 		</fieldset>
 
 		<fieldset>
+			<legend>Background and Colour</legend>
+			<div v-for="field in colorFields" :key="field.key" class="field-row">
+				<ColorPickerField
+					:label="field.label"
+					:value="values[field.key] || field.default"
+					@update="(v) => $emit('update', field.key, v)"
+					@reset="$emit('update', field.key, field.default)" />
+				<p v-if="errors[field.key]" class="field-error">
+					{{ errors[field.key] }}
+				</p>
+			</div>
+		</fieldset>
+
+		<fieldset>
 			<legend>Images</legend>
 			<p class="theming-tab__note">
 				These upload directly into Nextcloud's Theming app storage and take
@@ -44,12 +58,19 @@
 </template>
 
 <script>
+import ColorPickerField from '../ColorPickerField.vue'
+
 const TEXT_FIELDS = [
 	{ key: 'theming_application_name', label: 'Application Name' },
 	{ key: 'theming_web_link', label: 'Web Link', type: 'url' },
 	{ key: 'theming_slogan', label: 'Slogan' },
 	{ key: 'theming_legal_notice', label: 'Legal Notice', type: 'url' },
 	{ key: 'theming_privacy_policy', label: 'Privacy Policy', type: 'url' },
+]
+
+const COLOR_FIELDS = [
+	{ key: 'theming_primary_color', label: 'Primary color', default: '#0082c9' },
+	{ key: 'theming_background_color', label: 'Background color', default: '#ffffff' },
 ]
 
 const IMAGE_FIELDS = [
@@ -61,6 +82,7 @@ const IMAGE_FIELDS = [
 
 export default {
 	name: 'ThemingTab',
+	components: { ColorPickerField },
 	props: {
 		values: { type: Object, required: true },
 		images: { type: Object, default: () => ({}) },
@@ -70,6 +92,7 @@ export default {
 	data() {
 		return {
 			textFields: TEXT_FIELDS,
+			colorFields: COLOR_FIELDS,
 			imageFields: IMAGE_FIELDS,
 		}
 	},
@@ -81,7 +104,10 @@ export default {
 			}
 		},
 		handleSave() {
-			const keys = this.textFields.map((f) => f.key)
+			const keys = [
+				...this.textFields.map((f) => f.key),
+				...this.colorFields.map((f) => f.key),
+			]
 			this.$emit('save', keys)
 		},
 	},

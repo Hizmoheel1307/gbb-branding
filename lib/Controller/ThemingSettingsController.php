@@ -15,6 +15,7 @@ use OCP\IUserSession;
 
 class ThemingSettingsController extends Controller {
 	private const URL_KEYS = ['theming_web_link', 'theming_legal_notice', 'theming_privacy_policy'];
+	private const COLOR_KEYS = ['theming_primary_color', 'theming_background_color'];
 
 	private const IMAGE_KEY_MAP = [
 		'logo' => 'logo',
@@ -88,6 +89,10 @@ class ThemingSettingsController extends Controller {
 			}
 			if (in_array($key, self::URL_KEYS, true) && !filter_var($value, FILTER_VALIDATE_URL)) {
 				$errors[$key] = 'Must be a valid URL, e.g. https://example.com.';
+			}
+
+			if (in_array($key, self::COLOR_KEYS, true) && !preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+				$errors[$key] = 'Must be a hex color, e.g. #1B8018.';
 			}
 		}
 		return $errors;

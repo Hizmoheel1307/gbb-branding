@@ -31,6 +31,8 @@ class ThemingBridgeService {
 		'theming_slogan' => 'slogan',
 		'theming_legal_notice' => 'imprintUrl',
 		'theming_privacy_policy' => 'privacyUrl',
+		'theming_primary_color' => 'primary_color',
+		'theming_background_color' => 'background_color',
 	];
 
 	public function __construct(
