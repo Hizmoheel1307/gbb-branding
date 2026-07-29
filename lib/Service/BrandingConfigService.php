@@ -29,8 +29,9 @@ class BrandingConfigService {
 		// Footer
 		'footer_copyright', 'footer_company', 'footer_links', 'footer_version',
 
-		// Email Branding
-		'email_logo', 'email_header', 'email_footer', 'email_signature', 'email_social_links',
+		// Email Branding (logo/header color intentionally NOT here - see
+		// Theming tab, which already controls what emails inherit)
+		'email_footer', 'email_signature', 'email_social_links',
 
 		// Custom code
 		'custom_css', 'custom_js',

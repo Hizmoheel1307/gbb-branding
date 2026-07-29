@@ -29,6 +29,21 @@
 				@update="onFieldUpdate"
 				@upload="onThemingImageUpload"
 				@save="(keys) => onSave(keys, 'theming')" />
+			<LoginBrandingTab
+				v-else-if="activeTab === 'login'"
+				:values="values"
+				:errors="errors"
+				:saving="saving"
+				@update="onFieldUpdate"
+				@upload="onImageUpload"
+				@save="(keys) => onSave(keys, 'general')" />
+			<EmailBrandingTab
+				v-else-if="activeTab === 'email'"
+				:values="values"
+				:errors="errors"
+				:saving="saving"
+				@update="onFieldUpdate"
+				@save="(keys) => onSave(keys, 'general')" />
 			<div v-else class="govmailbranding-settings__placeholder">
 				This section is coming soon.
 			</div>
@@ -45,6 +60,8 @@ import { loadState } from '@nextcloud/initial-state'
 import { fetchSettings, saveSettings, fetchThemingSettings, saveThemingSettings, uploadMedia, uploadThemingImage } from '../services/SettingsService.js'
 import GeneralBrandingTab from './tabs/GeneralBrandingTab.vue'
 import ThemingTab from './tabs/ThemingTab.vue'
+import LoginBrandingTab from './tabs/LoginBrandingTab.vue'
+import EmailBrandingTab from './tabs/EmailBrandingTab.vue'
 
 const TABS = [
 	{ id: 'general', label: 'General Branding' },
@@ -61,7 +78,7 @@ const TABS = [
 
 export default {
 	name: 'AdminSettings',
-	components: { GeneralBrandingTab, ThemingTab },
+	components: { GeneralBrandingTab, ThemingTab, LoginBrandingTab, EmailBrandingTab },
 	data() {
 		return {
 			tabs: TABS,
