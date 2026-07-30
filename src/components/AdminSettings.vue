@@ -57,11 +57,9 @@ import EmailBrandingTab from './tabs/EmailBrandingTab.vue'
 const TABS = [
 	{ id: 'general', label: 'General Branding' },
 	{ id: 'theming', label: 'Theming' },
-	{ id: 'login', label: 'Login Branding' },
 	{ id: 'email', label: 'Email Branding' },
 	{ id: 'dashboard', label: 'Dashboard Branding' },
 	{ id: 'css', label: 'Custom CSS' },
-	{ id: 'js', label: 'Custom JavaScript' },
 	{ id: 'advanced', label: 'Advanced' },
 ]
 
