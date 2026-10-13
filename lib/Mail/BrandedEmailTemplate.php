@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace OCA\GovMailBranding\Mail;
 
 use OC\Mail\EMailTemplate;
+use OCA\GovMailBranding\Service\EmailCatalog;
+use OCA\GovMailBranding\Service\EmailCustomizationService;
 use OCP\IConfig;
+use OCP\IUserManager;
 use OCP\Server;
 use Throwable;
 
 /**
- * Overrides only the footer. Logo and header background color are NOT
+ * Branded footer + per-email customisation. Logo and header background color are NOT
  * touched here - Nextcloud's base EMailTemplate::addHeader() already pulls
  * those from the Theming app's logo/primary_color, which our Theming tab
  * already writes to.
@@ -30,10 +33,258 @@ use Throwable;
 class BrandedEmailTemplate extends EMailTemplate {
 	public const APP_ID = 'govmailbranding';
 
+	// ------------------------------------------------------------------
+	// Per-email customisation (Email Templates tab).
+	//
+	// Nextcloud builds every email by calling setSubject(), addHeading(),
+	// addBodyText(), addBodyButton()... on this object. We intercept those
+	// calls and swap in the admin's text. Anything not customised passes
+	// through untouched, and any error falls back to the original text:
+	// customisation must never stop an email from being sent.
+	// ------------------------------------------------------------------
+
+	private bool $resolved = false;
+	/** 'none' | 'override' | 'welcome' */
+	private string $mode = 'none';
+	private array $cfg = [];
+	private array $values = [];
+	private ?EmailCustomizationService $svc = null;
+	private bool $headingReplaced = false;
+	private bool $buttonReplaced = false;
+	private bool $customBodyDone = false;
+	private bool $richDone = false;
+	private int $imageCounter = 0;
+	/** @var array<string, string> image id => cid */
+	private array $embedded = [];
+
+	private function resolve(): void {
+		if ($this->resolved) {
+			return;
+		}
+		$this->resolved = true;
+		try {
+			$this->svc = Server::get(EmailCustomizationService::class);
+			$this->svc->recordSeen($this->emailId);
+
+			if ($this->emailId === EmailCatalog::WELCOME) {
+				$welcome = $this->svc->getWelcome();
+				if ($welcome['enabled']) {
+					$this->mode = 'welcome';
+					$this->cfg = [
+						'subject' => $welcome['subject'],
+						'heading' => $welcome['heading'],
+						'body_mode' => 'replace',
+						'body' => $welcome['intro'],
+						'button' => $welcome['button'],
+						'welcome' => $welcome,
+					];
+				}
+			} elseif (($override = $this->svc->getOverride($this->emailId)) !== null) {
+				$this->mode = 'override';
+				$this->cfg = $override;
+			}
+
+			if ($this->mode !== 'none') {
+				$this->values = $this->svc->placeholderValues($this->data, $this->extraValues());
+			}
+		} catch (Throwable $e) {
+			$this->mode = 'none';
+		}
+	}
+
+	private function extraValues(): array {
+		if ($this->emailId !== EmailCatalog::WELCOME) {
+			return [];
+		}
+		$uid = (string)($this->data['userid'] ?? '');
+		$email = '';
+		try {
+			$user = Server::get(IUserManager::class)->get($uid);
+			$email = (string)($user?->getEMailAddress() ?? '');
+		} catch (Throwable) {
+		}
+		if ($email === '' && filter_var($uid, FILTER_VALIDATE_EMAIL)) {
+			$email = $uid;
+		}
+		return ['email' => $email];
+	}
+
+	private function cfgText(string $key): string {
+		return trim((string)($this->cfg[$key] ?? ''));
+	}
+
+	public function setSubject(string $subject): void {
+		$this->resolve();
+		if ($this->mode !== 'none' && $this->cfgText('subject') !== '') {
+			$subject = $this->svc->fill($this->cfgText('subject'), $this->values);
+		}
+		parent::setSubject($subject);
+	}
+
+	public function addHeading(string $title, $plainTitle = ''): void {
+		$this->resolve();
+		if ($this->mode !== 'none' && !$this->headingReplaced && $this->cfgText('heading') !== '') {
+			$this->headingReplaced = true;
+			$title = $this->svc->fill($this->cfgText('heading'), $this->values);
+			if ($plainTitle !== false) {
+				$plainTitle = '';
+			}
+		}
+		parent::addHeading($title, $plainTitle);
+	}
+
+	public function addBodyText(string $text, $plainText = ''): void {
+		$this->resolve();
+		$this->injectCustomBody('start');
+		if ($this->mode !== 'none' && ($this->cfg['body_mode'] ?? 'keep') === 'replace') {
+			return; // admin replaced the default paragraphs
+		}
+		parent::addBodyText($text, $plainText);
+	}
+
+	public function addBodyListItem(
+		string $text,
+		string $metaInfo = '',
+		string $icon = '',
+		$plainText = '',
+		$plainMetaInfo = '',
+		$plainIndent = 0,
+	): void {
+		$this->resolve();
+		$this->injectCustomBody('start');
+		parent::addBodyListItem($text, $metaInfo, $icon, $plainText, $plainMetaInfo, $plainIndent);
+	}
+
+	public function addBodyButton(string $text, string $url, $plainText = ''): void {
+		$this->resolve();
+		$this->injectCustomBody('start');
+		[$text, $plainText] = $this->buttonLabel($text, $plainText);
+		parent::addBodyButton($text, $url, $plainText);
+		$this->appendRichSections();
+	}
+
+	public function addBodyButtonGroup(
+		string $textLeft,
+		string $urlLeft,
+		string $textRight,
+		string $urlRight,
+		string $plainTextLeft = '',
+		string $plainTextRight = '',
+	): void {
+		$this->resolve();
+		$this->injectCustomBody('start');
+		[$textLeft, $plainTextLeft] = $this->buttonLabel($textLeft, $plainTextLeft);
+
+		$secondary = 'default';
+		if ($this->mode === 'welcome') {
+			$secondary = $this->cfg['welcome']['secondary_button'] ?? 'hide';
+		} elseif ($this->mode === 'override' && ($this->cfg['hide_secondary_button'] ?? false)) {
+			$secondary = 'hide';
+		}
+
+		if ($secondary === 'hide') {
+			parent::addBodyButton($textLeft, $urlLeft, $plainTextLeft);
+		} else {
+			if ($secondary === 'custom') {
+				$w = $this->cfg['welcome'];
+				if (trim((string)$w['secondary_text']) !== '') {
+					$textRight = $this->svc->fill($w['secondary_text'], $this->values);
+					$plainTextRight = '';
+				}
+				if (trim((string)$w['secondary_url']) !== '') {
+					$urlRight = $this->svc->fill($w['secondary_url'], $this->values);
+				}
+			}
+			parent::addBodyButtonGroup($textLeft, $urlLeft, $textRight, $urlRight, $plainTextLeft, $plainTextRight);
+		}
+		$this->appendRichSections();
+	}
+
+	/**
+	 * @return array{0: string, 1: string|false}
+	 */
+	private function buttonLabel(string $text, mixed $plainText): array {
+		if ($this->mode === 'none' || $this->buttonReplaced || $this->cfgText('button') === '') {
+			return [$text, $plainText];
+		}
+		$this->buttonReplaced = true;
+		$label = $this->svc->fill($this->cfgText('button'), $this->values);
+		// parent escapes only when plain text is '' - keep that contract.
+		return $plainText === false ? [htmlspecialchars($label, ENT_QUOTES), false] : [$label, ''];
+	}
+
+	/**
+	 * @param 'start'|'end' $at
+	 */
+	private function injectCustomBody(string $at): void {
+		if ($this->mode === 'none' || $this->customBodyDone || $this->footerAdded) {
+			return;
+		}
+		$mode = $this->cfg['body_mode'] ?? 'keep';
+		$body = $this->cfgText('body');
+		if ($body === '' || $mode === 'keep') {
+			return;
+		}
+		$wanted = $mode === 'after' ? 'end' : 'start';
+		if ($at !== $wanted && !($at === 'end' && $wanted === 'start')) {
+			return;
+		}
+		$this->customBodyDone = true;
+		foreach (preg_split('/\n\s*\n/', $body) ?: [] as $paragraph) {
+			if (trim($paragraph) === '') {
+				continue;
+			}
+			parent::addBodyText($this->svc->toHtml($paragraph, $this->values), $this->svc->toPlain($paragraph, $this->values));
+		}
+	}
+
+	private function appendRichSections(): void {
+		if ($this->mode !== 'welcome' || $this->richDone || $this->footerAdded) {
+			return;
+		}
+		$this->richDone = true;
+		$w = $this->cfg['welcome'];
+		try {
+			[$html, $plain] = WelcomeRenderer::render($w['sections'] ?? [], $this->values, $this->svc, fn (string $id) => $this->embedImage($id));
+			if (trim((string)$w['closing']) !== '') {
+				$html .= vsprintf($this->bodyText, [$this->svc->toHtml($w['closing'], $this->values)]);
+				$plain .= $this->svc->toPlain($w['closing'], $this->values) . PHP_EOL . PHP_EOL;
+			}
+			if ($html !== '') {
+				$this->ensureBodyListClosed();
+				$this->ensureBodyIsOpened();
+				$this->htmlBody .= $html;
+				$this->plainBody .= PHP_EOL . $plain;
+			}
+		} catch (Throwable) {
+			// A broken section must not block the welcome email.
+		}
+	}
+
+	private function embedImage(string $id): ?string {
+		if (isset($this->embedded[$id])) {
+			return $this->embedded[$id];
+		}
+		$image = $this->svc->loadImage($id);
+		if ($image === null) {
+			return null;
+		}
+		$name = 'gmb' . (++$this->imageCounter) . '-' . $id;
+		$this->inlineImages[] = ['name' => $name, 'content' => $image['content'], 'mimeType' => $image['mime']];
+		return $this->embedded[$id] = 'cid:' . $name;
+	}
+
+	private function beforeFooter(): void {
+		$this->resolve();
+		$this->injectCustomBody('end');
+		$this->appendRichSections();
+	}
+
 	public function addFooter(string $text = '', ?string $lang = null): void {
 		if ($this->footerAdded) {
 			return;
 		}
+		$this->beforeFooter();
 
 		try {
 			[$html, $plain] = $this->buildFooter($text);

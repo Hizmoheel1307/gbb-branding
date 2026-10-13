@@ -62,7 +62,7 @@ class TestEmailService {
 
 			$failed = $this->mailer->send($message);
 			if ($failed !== []) {
-				$result['error'] = 'Mail server rejected: ' . implode(', ', $failed);
+				$result['error'] = 'Sending failed for ' . implode(', ', $failed) . '. Nextcloud logs the exact SMTP error in nextcloud.log (search for "Sending mail to").';
 			} else {
 				$result['ok'] = true;
 			}

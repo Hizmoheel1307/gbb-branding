@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\GovMailBranding\AppInfo;
 
+use OCA\GovMailBranding\Listener\FirstLoginListener;
 use OCA\GovMailBranding\Listener\GlobalStyleListener;
 use OCA\GovMailBranding\SetupChecks\EmailTemplateCheck;
 use OCP\AppFramework\App;
@@ -11,6 +12,7 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
+use OCP\User\Events\UserFirstTimeLoggedInEvent;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'govmailbranding';
@@ -26,6 +28,7 @@ class Application extends App implements IBootstrap {
 	 */
 	public function register(IRegistrationContext $context): void {
 		$context->registerEventListener(BeforeTemplateRenderedEvent::class, GlobalStyleListener::class);
+		$context->registerEventListener(UserFirstTimeLoggedInEvent::class, FirstLoginListener::class);
 		$context->registerSetupCheck(EmailTemplateCheck::class);
 	}
 

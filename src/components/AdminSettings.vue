@@ -36,6 +36,9 @@
 				:saving="saving"
 				@update="onFieldUpdate"
 				@save="(keys) => onSave(keys, 'general')" />
+			<EmailTemplatesTab
+				v-else-if="activeTab === 'templates'"
+				:instance-label="values.general_portal_name || 'GovMail'" />
 			<div v-else class="govmailbranding-settings__placeholder">
 				This section is coming soon.
 			</div>
@@ -53,11 +56,13 @@ import { fetchSettings, saveSettings, fetchThemingSettings, saveThemingSettings,
 import GeneralBrandingTab from './tabs/GeneralBrandingTab.vue'
 import ThemingTab from './tabs/ThemingTab.vue'
 import EmailBrandingTab from './tabs/EmailBrandingTab.vue'
+import EmailTemplatesTab from './tabs/EmailTemplatesTab.vue'
 
 const TABS = [
 	{ id: 'general', label: 'General Branding' },
 	{ id: 'theming', label: 'Theming' },
 	{ id: 'email', label: 'Email Branding' },
+	{ id: 'templates', label: 'Email Templates' },
 	{ id: 'dashboard', label: 'Dashboard Branding' },
 	{ id: 'css', label: 'Custom CSS' },
 	{ id: 'advanced', label: 'Advanced' },
@@ -65,7 +70,7 @@ const TABS = [
 
 export default {
 	name: 'AdminSettings',
-	components: { GeneralBrandingTab, ThemingTab, EmailBrandingTab },
+	components: { GeneralBrandingTab, ThemingTab, EmailBrandingTab, EmailTemplatesTab },
 	data() {
 		return {
 			tabs: TABS,

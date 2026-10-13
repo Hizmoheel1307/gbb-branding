@@ -66,3 +66,49 @@ export async function sendTestEmail(to) {
 		throw error
 	}
 }
+
+// ---- Email Templates tab ----
+
+const ET = '/apps/govmailbranding/email-templates'
+
+export async function fetchEmailTemplates() {
+	return (await axios.get(generateUrl(ET))).data
+}
+
+export async function saveEmailOverride(emailId, override) {
+	return (await axios.post(generateUrl(ET + '/override'), { emailId, override })).data
+}
+
+export async function resetEmailOverride(emailId) {
+	return (await axios.post(generateUrl(ET + '/override/reset'), { emailId })).data
+}
+
+export async function saveWelcomeEmail(welcome) {
+	return (await axios.post(generateUrl(ET + '/welcome'), { welcome })).data
+}
+
+export async function uploadEmailImage(file) {
+	const formData = new FormData()
+	formData.append('file', file)
+	return (await axios.post(generateUrl(ET + '/image'), formData, { headers: { 'Content-Type': 'multipart/form-data' } })).data
+}
+
+export function emailImageUrl(id) {
+	return generateUrl(ET + '/image/' + id)
+}
+
+export async function previewEmail(emailId) {
+	return (await axios.post(generateUrl(ET + '/preview'), { emailId })).data
+}
+
+// Resolves with the server's result even on HTTP 422 so the UI can show why.
+export async function sendTestTemplate(emailId, to) {
+	try {
+		return (await axios.post(generateUrl(ET + '/test'), { emailId, to })).data
+	} catch (error) {
+		if (error.response && error.response.data) {
+			return { ok: false, ...error.response.data }
+		}
+		throw error
+	}
+}
