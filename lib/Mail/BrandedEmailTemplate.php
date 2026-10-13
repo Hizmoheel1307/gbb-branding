@@ -140,15 +140,16 @@ class BrandedEmailTemplate extends EMailTemplate {
 		$start = strlen($this->htmlBody);
 		parent::addHeader();
 		try {
+			$logoSrc = ($header['logo'] ?? '') !== '' ? $this->embedImage($header['logo']) : null;
 			$this->htmlBody = substr($this->htmlBody, 0, $start)
-				. self::restyleHeader(substr($this->htmlBody, $start), $header);
+				. self::restyleHeader(substr($this->htmlBody, $start), $header, $logoSrc);
 		} catch (Throwable) {
 			// keep Nextcloud's header as rendered
 		}
 	}
 
 	/** @internal public for tests */
-	public static function restyleHeader(string $html, array $header): string {
+	public static function restyleHeader(string $html, array $header, ?string $logoSrc = null): string {
 		$w = (int)$header['logo_width'];
 		$bg = $header['background'] === 'color' ? $header['background_color'] : 'transparent';
 		$pad = $header['background'] === 'color' ? '20px 16px' : '24px 0 4px';
@@ -159,8 +160,12 @@ class BrandedEmailTemplate extends EMailTemplate {
 		// The coloured circle behind the logo.
 		$html = (string)preg_replace('/<center data-parsed="" style="[^"]*">/', '<center data-parsed="" style="background-color:' . $bg . ';padding:' . $pad . ';' . $radius . '">', $html, 1);
 		// Logo size: Outlook needs a width attribute, CSS alone is ignored.
-		$html = (string)preg_replace_callback('/<img class="logo float-center"[^>]*>/', static function ($m) use ($w) {
+		$html = (string)preg_replace_callback('/<img class="logo float-center"[^>]*>/', static function ($m) use ($w, $logoSrc) {
 			$img = (string)preg_replace('/\s(width|height)="\d+"/', '', $m[0]);
+			if ($logoSrc !== null) {
+				// The email logo uploaded in GovMail Branding replaces the Theming logo.
+				$img = (string)preg_replace('/\ssrc="[^"]*"/', ' src="' . $logoSrc . '"', $img, 1);
+			}
 			$img = (string)preg_replace('/max-height:\d+px;max-width:\d+px;width:auto;height:auto/', 'max-width:' . $w . 'px;width:' . $w . 'px;height:auto', $img);
 			return str_replace('<img ', '<img width="' . $w . '" ', $img);
 		}, $html, 1);

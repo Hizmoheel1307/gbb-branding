@@ -180,7 +180,9 @@ class EmailCustomizationService {
 	public static function defaultHeader(): array {
 		return [
 			'enabled' => true,
-			'logo_width' => 220,
+			// GovMail logo bundled with the app (transparent PNG); '' = Theming logo
+			'logo' => 'p-govmail-logo',
+			'logo_width' => 460,
 			'background' => 'none',
 			'background_color' => '#1B8018',
 			'compact' => true,
@@ -192,11 +194,12 @@ class EmailCustomizationService {
 	}
 
 	public function saveHeader(array $input): array {
-		$width = (int)($input['logo_width'] ?? 220);
+		$width = (int)($input['logo_width'] ?? 460);
 		$bg = (string)($input['background'] ?? 'none');
 		$clean = [
 			'enabled' => (bool)($input['enabled'] ?? true),
-			'logo_width' => max(60, min(400, $width)),
+			'logo' => $this->imageId($input['logo'] ?? ''),
+			'logo_width' => max(60, min(540, $width)),
 			'background' => in_array($bg, ['none', 'color'], true) ? $bg : 'none',
 			'background_color' => $this->color($input['background_color'] ?? '', '#1B8018'),
 			'compact' => (bool)($input['compact'] ?? true),
@@ -328,7 +331,7 @@ class EmailCustomizationService {
 	/** @return list<string> ids of the icons bundled with the app */
 	public function presetImages(): array {
 		$ids = [];
-		foreach (glob(self::PRESET_DIR . '/*.png') ?: [] as $file) {
+		foreach (array_merge(glob(self::PRESET_DIR . '/app-*.png') ?: [], glob(self::PRESET_DIR . '/tile-*.png') ?: []) as $file) {
 			$ids[] = 'p-' . basename($file, '.png');
 		}
 		return $ids;

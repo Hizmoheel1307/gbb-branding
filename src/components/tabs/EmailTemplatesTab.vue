@@ -20,10 +20,21 @@
 					Use the GovMail header (larger logo, no circle behind it)
 				</label>
 				<fieldset :disabled="!header.enabled">
+					<div class="field-row">
+						<label>Email logo</label>
+						<ImagePicker v-model="header.logo" label="Upload logo (PNG with transparent background)" />
+						<p class="field-hint">
+							<span v-if="!header.logo">Using the Nextcloud Theming logo.</span>
+							<span v-else-if="header.logo === 'p-govmail-logo'">Using the GovMail Digital Workspace logo.</span>
+							<span v-else>Using your uploaded logo.</span>
+							<button v-if="header.logo !== 'p-govmail-logo'" type="button" class="link-button" @click="header.logo = 'p-govmail-logo'">Use GovMail logo</button>
+							Remove the logo to fall back to the Theming logo. The logo is embedded in every email, so keep it under ~150 KB.
+						</p>
+					</div>
 					<div class="field-row two">
 						<div>
 							<label>Logo width: {{ header.logo_width }} px</label>
-							<input v-model.number="header.logo_width" type="range" min="60" max="400" step="10">
+							<input v-model.number="header.logo_width" type="range" min="60" max="540" step="10">
 						</div>
 						<div>
 							<label>Behind the logo</label>
@@ -145,6 +156,7 @@
 
 <script>
 import WelcomeDesigner from '../email/WelcomeDesigner.vue'
+import ImagePicker from '../email/ImagePicker.vue'
 import { toastSuccess, toastError } from '../../toast.js'
 import {
 	fetchEmailTemplates, saveEmailHeader, saveEmailOverride, resetEmailOverride, saveWelcomeEmail, previewEmail, sendTestTemplate,
@@ -156,7 +168,7 @@ const EMPTY = { enabled: true, subject: '', heading: '', body_mode: 'keep', body
 
 export default {
 	name: 'EmailTemplatesTab',
-	components: { WelcomeDesigner },
+	components: { WelcomeDesigner, ImagePicker },
 	props: {
 		instanceLabel: { type: String, default: 'GovMail' },
 	},
