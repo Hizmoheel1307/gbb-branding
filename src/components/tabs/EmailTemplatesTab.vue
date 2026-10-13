@@ -23,7 +23,7 @@
 			</div>
 
 			<!-- Welcome email -->
-			<WelcomeDesigner v-if="isWelcome" v-model="welcome" />
+			<WelcomeDesigner v-if="isWelcome" v-model="welcome" :presets="presetImages" />
 
 			<!-- Any other email -->
 			<div v-else-if="current" class="override-form">
@@ -135,6 +135,7 @@ export default {
 			emails: [],
 			overrides: {},
 			globalPlaceholders: [],
+			presetImages: [],
 			welcome: null,
 			selectedId: WELCOME,
 			form: { ...EMPTY },
@@ -177,6 +178,7 @@ export default {
 				this.emails = data.emails
 				this.overrides = data.overrides || {}
 				this.globalPlaceholders = data.globalPlaceholders || []
+				this.presetImages = data.presetImages || []
 				this.welcome = data.welcome
 				this.onSelect()
 				this.loaded = true

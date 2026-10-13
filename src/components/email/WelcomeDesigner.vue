@@ -1,5 +1,12 @@
 <template>
 	<div class="welcome-designer">
+		<div class="preset-bar">
+			<span>Start from a ready-made design in GovMail colours, then edit anything.</span>
+			<button type="button" class="secondary" :disabled="loadingPreset" @click="loadPreset">
+				{{ loadingPreset ? 'Loading…' : 'Load GovMail design' }}
+			</button>
+		</div>
+
 		<fieldset>
 			<legend>Sending</legend>
 			<label class="checkbox-row">
@@ -62,6 +69,21 @@
 		</fieldset>
 
 		<fieldset>
+			<legend>Brand colours</legend>
+			<div class="field-row two">
+				<div>
+					<label>Accent (buttons in steps, highlights)</label>
+					<input v-model="w.accent" type="color">
+				</div>
+				<div>
+					<label>Title colour on light sections</label>
+					<input v-model="w.title_color" type="color">
+				</div>
+			</div>
+			<p class="field-hint">The main button and header use your Theming colour. Dark section backgrounds switch to white text automatically.</p>
+		</fieldset>
+
+		<fieldset>
 			<legend>Sections ({{ w.sections.length }})</legend>
 			<p class="field-hint">
 				Each section is a coloured block with an optional icon, title, text, picture and up to 8
@@ -88,7 +110,26 @@
 						</div>
 						<div>
 							<label>Icon (shown above the title)</label>
-							<ImagePicker v-model="s.icon" small label="Upload icon" />
+							<ImagePicker v-model="s.icon" small label="Upload icon" :presets="presets" />
+						</div>
+					</div>
+					<div class="field-row two">
+						<div>
+							<label>Layout</label>
+							<select v-model="s.layout">
+								<option value="stacked">Stacked (centred)</option>
+								<option value="image-left">Picture left, text right</option>
+								<option value="image-right">Text left, picture right</option>
+								<option value="steps">Numbered steps</option>
+							</select>
+						</div>
+						<div v-if="s.layout === 'stacked'">
+							<label>Tiles per row</label>
+							<select v-model.number="s.columns">
+								<option :value="2">2</option>
+								<option :value="3">3</option>
+								<option :value="4">4 (icons with short titles)</option>
+							</select>
 						</div>
 					</div>
 					<div class="field-row">
@@ -107,7 +148,7 @@
 					<div class="items">
 						<label>Feature tiles ({{ s.items.length }}/8)</label>
 						<div v-for="(it, j) in s.items" :key="j" class="item-row">
-							<ImagePicker v-model="it.icon" small label="Icon" />
+							<ImagePicker v-model="it.icon" small label="Icon" :presets="presets" />
 							<input v-model="it.title" type="text" placeholder="Tile title">
 							<textarea v-model="it.text" rows="2" placeholder="Short description" />
 							<button type="button" class="danger" @click="s.items.splice(j, 1)">✕</button>
@@ -134,6 +175,7 @@
 
 <script>
 import ImagePicker from './ImagePicker.vue'
+import { fetchWelcomePreset } from '../../services/SettingsService.js'
 
 const PALETTE = ['#f1effc', '#f4f6fb', '#eaf4fd', '#e9f7f3', '#111111']
 
@@ -142,9 +184,10 @@ export default {
 	components: { ImagePicker },
 	props: {
 		value: { type: Object, required: true },
+		presets: { type: Array, default: () => [] },
 	},
 	data() {
-		return { open: {} }
+		return { open: {}, loadingPreset: false }
 	},
 	computed: {
 		w() {
@@ -161,6 +204,8 @@ export default {
 				title: '',
 				text: '',
 				image: '',
+				layout: 'stacked',
+				columns: 2,
 				items: [],
 			})
 			this.$set(this.open, id, true)
@@ -175,6 +220,19 @@ export default {
 			const [s] = list.splice(i, 1)
 			list.splice(i + delta, 0, s)
 		},
+		async loadPreset() {
+			if (this.w.sections.length && !confirm('Replace the current welcome design with the GovMail design? Your "Sending" options are kept.')) {
+				return
+			}
+			this.loadingPreset = true
+			try {
+				const { welcome } = await fetchWelcomePreset()
+				Object.keys(welcome).forEach((k) => this.$set(this.w, k, welcome[k]))
+				this.open = {}
+			} finally {
+				this.loadingPreset = false
+			}
+		},
 		toggle(id) {
 			this.$set(this.open, id, !this.open[id])
 		},
@@ -183,6 +241,17 @@ export default {
 </script>
 
 <style scoped>
+.preset-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+	margin-bottom: 20px;
+	border: 1px solid var(--color-border, #ddd);
+	border-radius: var(--border-radius, 6px);
+	font-size: 14px;
+}
 .section-card {
 	border: 1px solid var(--color-border, #ddd);
 	border-left: 6px solid #ccc;

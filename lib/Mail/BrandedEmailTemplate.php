@@ -245,7 +245,14 @@ class BrandedEmailTemplate extends EMailTemplate {
 		$this->richDone = true;
 		$w = $this->cfg['welcome'];
 		try {
-			[$html, $plain] = WelcomeRenderer::render($w['sections'] ?? [], $this->values, $this->svc, fn (string $id) => $this->embedImage($id));
+			[$html, $plain] = WelcomeRenderer::render(
+				$w['sections'] ?? [],
+				$this->values,
+				$this->svc,
+				fn (string $id) => $this->embedImage($id),
+				(string)($w['accent'] ?? '#1B8018'),
+				(string)($w['title_color'] ?? '#14451A'),
+			);
 			if (trim((string)$w['closing']) !== '') {
 				$html .= vsprintf($this->bodyText, [$this->svc->toHtml($w['closing'], $this->values)]);
 				$plain .= $this->svc->toPlain($w['closing'], $this->values) . PHP_EOL . PHP_EOL;

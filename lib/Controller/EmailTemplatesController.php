@@ -8,6 +8,7 @@ use OC\Mail\EMailTemplate;
 use OCA\GovMailBranding\Service\EmailCatalog;
 use OCA\GovMailBranding\Service\EmailCustomizationService;
 use OCA\GovMailBranding\Service\WelcomeMailService;
+use OCA\GovMailBranding\Service\WelcomePreset;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -73,6 +74,7 @@ class EmailTemplatesController extends Controller {
 			'overrides' => (object)$this->svc->getOverrides(),
 			'welcome' => $this->svc->getWelcome(),
 			'globalPlaceholders' => EmailCatalog::GLOBAL_PLACEHOLDERS,
+			'presetImages' => $this->svc->presetImages(),
 		]);
 	}
 
@@ -120,6 +122,14 @@ class EmailTemplatesController extends Controller {
 		} catch (\InvalidArgumentException $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
+	}
+
+	/** The ready-made GovMail welcome design; the tab loads it into the form. */
+	public function welcomePreset(): JSONResponse {
+		if ($this->admin() === null) {
+			return $this->denied();
+		}
+		return new JSONResponse(['welcome' => WelcomePreset::govmail()]);
 	}
 
 	public function uploadImage(): JSONResponse {

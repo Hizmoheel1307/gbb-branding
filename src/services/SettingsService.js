@@ -112,3 +112,7 @@ export async function sendTestTemplate(emailId, to) {
 		throw error
 	}
 }
+
+export async function fetchWelcomePreset() {
+	return (await axios.get(generateUrl(ET + '/welcome-preset'))).data
+}

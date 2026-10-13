@@ -28,6 +28,9 @@ class EmailCustomizationService {
 	private const IMAGE_FOLDER = 'email-images';
 
 	public const BODY_MODES = ['keep', 'before', 'after', 'replace'];
+	public const LAYOUTS = ['stacked', 'image-left', 'image-right', 'steps'];
+	/** Icons shipped with the app (img/email/*.png), referenced as "p-<name>". */
+	private const PRESET_DIR = __DIR__ . '/../../img/email';
 	public const IMAGE_TYPES = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif'];
 	public const MAX_IMAGE_BYTES = 1024 * 1024;
 	private const MAX_TEXT = 4000;
@@ -97,6 +100,8 @@ class EmailCustomizationService {
 			'secondary_text' => '',
 			'secondary_url' => '',
 			'closing' => '',
+			'accent' => '#1B8018',
+			'title_color' => '#14451A',
 			'sections' => [],
 		];
 	}
@@ -125,6 +130,8 @@ class EmailCustomizationService {
 			$sections[] = [
 				'id' => preg_match('/^[a-z0-9]{1,16}$/', (string)($s['id'] ?? '')) ? $s['id'] : bin2hex(random_bytes(4)),
 				'bg' => $this->color($s['bg'] ?? '', '#f4f6fb'),
+				'layout' => in_array($s['layout'] ?? '', self::LAYOUTS, true) ? $s['layout'] : 'stacked',
+				'columns' => in_array((int)($s['columns'] ?? 2), [2, 3, 4], true) ? (int)$s['columns'] : 2,
 				'icon' => $this->imageId($s['icon'] ?? ''),
 				'title' => $this->text($s['title'] ?? '', 200),
 				'text' => $this->text($s['text'] ?? '', 2000),
@@ -154,6 +161,8 @@ class EmailCustomizationService {
 			'secondary_text' => $this->text($input['secondary_text'] ?? '', 100),
 			'secondary_url' => $secondaryUrl,
 			'closing' => $this->text($input['closing'] ?? ''),
+			'accent' => $this->color($input['accent'] ?? '', '#1B8018'),
+			'title_color' => $this->color($input['title_color'] ?? '', '#14451A'),
 			'sections' => $sections,
 		];
 		$this->writeJson(self::WELCOME_KEY, $clean);
@@ -207,6 +216,10 @@ class EmailCustomizationService {
 	public function loadImage(string $id): ?array {
 		if ($this->imageId($id) === '') {
 			return null;
+		}
+		if (str_starts_with($id, 'p-')) {
+			$path = self::PRESET_DIR . '/' . substr($id, 2) . '.png';
+			return is_file($path) ? ['content' => (string)file_get_contents($path), 'mime' => 'image/png'] : null;
 		}
 		try {
 			$folder = $this->imageFolder();
@@ -276,6 +289,15 @@ class EmailCustomizationService {
 		return (string)preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/', '$1 ($2)', $plain);
 	}
 
+	/** @return list<string> ids of the icons bundled with the app */
+	public function presetImages(): array {
+		$ids = [];
+		foreach (glob(self::PRESET_DIR . '/*.png') ?: [] as $file) {
+			$ids[] = 'p-' . basename($file, '.png');
+		}
+		return $ids;
+	}
+
 	// ----------------------------------------------------------------- helpers
 
 	private function imageFolder(): ISimpleFolder {
@@ -288,7 +310,7 @@ class EmailCustomizationService {
 
 	private function imageId(mixed $id): string {
 		$id = (string)$id;
-		return preg_match('/^[a-f0-9]{16}$/', $id) ? $id : '';
+		return preg_match('/^([a-f0-9]{16}|p-[a-z0-9-]{1,40})$/', $id) ? $id : '';
 	}
 
 	private function color(mixed $c, string $default): string {

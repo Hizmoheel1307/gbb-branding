@@ -4,10 +4,25 @@
 			<img :src="url" alt="">
 			<button type="button" class="link-button" @click="$emit('input', '')">Remove</button>
 		</div>
-		<label v-else class="image-picker__upload" :class="{ small, busy }">
-			<input type="file" accept="image/png,image/jpeg,image/gif" :disabled="busy" @change="onFile">
-			{{ busy ? 'Uploading…' : label }}
-		</label>
+		<span v-else class="image-picker__choose">
+			<label class="image-picker__upload" :class="{ small, busy }">
+				<input type="file" accept="image/png,image/jpeg,image/gif" :disabled="busy" @change="onFile">
+				{{ busy ? 'Uploading…' : label }}
+			</label>
+			<button v-if="presets.length" type="button" class="link-button" @click="library = !library">
+				{{ library ? 'Close library' : 'Icon library' }}
+			</button>
+		</span>
+		<div v-if="library && !value" class="image-picker__library">
+			<button
+				v-for="id in presets"
+				:key="id"
+				type="button"
+				:title="id.replace('p-', '')"
+				@click="pick(id)">
+				<img :src="thumb(id)" alt="">
+			</button>
+		</div>
 		<p v-if="error" class="image-picker__error">{{ error }}</p>
 	</div>
 </template>
@@ -21,9 +36,10 @@ export default {
 		value: { type: String, default: '' },
 		label: { type: String, default: 'Upload image' },
 		small: { type: Boolean, default: false },
+		presets: { type: Array, default: () => [] },
 	},
 	data() {
-		return { busy: false, error: '' }
+		return { busy: false, error: '', library: false }
 	},
 	computed: {
 		url() {
@@ -31,6 +47,13 @@ export default {
 		},
 	},
 	methods: {
+		thumb(id) {
+			return emailImageUrl(id)
+		},
+		pick(id) {
+			this.library = false
+			this.$emit('input', id)
+		},
 		async onFile(event) {
 			const file = event.target.files && event.target.files[0]
 			event.target.value = ''
@@ -79,6 +102,29 @@ export default {
 	background: #fff;
 }
 .image-picker__preview.small img { max-width: 40px; max-height: 40px; }
+.image-picker__choose { display: inline-flex; gap: 10px; align-items: center; }
+.image-picker__library {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 44px);
+	gap: 6px;
+	margin-top: 8px;
+	padding: 8px;
+	border: 1px solid var(--color-border, #ddd);
+	border-radius: var(--border-radius, 6px);
+	max-width: 420px;
+	background: var(--color-main-background, #fff);
+}
+.image-picker__library button {
+	width: 44px;
+	height: 44px;
+	padding: 4px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	background: none;
+	cursor: pointer;
+}
+.image-picker__library button:hover { border-color: var(--color-primary-element, #0082c9); }
+.image-picker__library img { width: 34px; height: 34px; }
 .image-picker__error { color: var(--color-error, #c9302c); font-size: 12px; margin: 4px 0 0; }
 .link-button {
 	background: none;

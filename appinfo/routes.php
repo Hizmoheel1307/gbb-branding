@@ -17,6 +17,7 @@ return [
 		['name' => 'email_templates#saveOverride', 'url' => '/email-templates/override', 'verb' => 'POST'],
 		['name' => 'email_templates#resetOverride', 'url' => '/email-templates/override/reset', 'verb' => 'POST'],
 		['name' => 'email_templates#saveWelcome', 'url' => '/email-templates/welcome', 'verb' => 'POST'],
+		['name' => 'email_templates#welcomePreset', 'url' => '/email-templates/welcome-preset', 'verb' => 'GET'],
 		['name' => 'email_templates#uploadImage', 'url' => '/email-templates/image', 'verb' => 'POST'],
 		['name' => 'email_templates#image', 'url' => '/email-templates/image/{id}', 'verb' => 'GET'],
 		['name' => 'email_templates#preview', 'url' => '/email-templates/preview', 'verb' => 'POST'],
