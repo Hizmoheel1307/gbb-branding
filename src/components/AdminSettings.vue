@@ -44,14 +44,12 @@
 			</div>
 		</div>
 
-		<div v-if="saveMessage" class="govmailbranding-settings__message">
-			{{ saveMessage }}
-		</div>
 	</div>
 </template>
 
 <script>
 import { loadState } from '@nextcloud/initial-state'
+import { toastSuccess, toastError } from '../toast.js'
 import { fetchSettings, saveSettings, fetchThemingSettings, saveThemingSettings, uploadMedia, uploadThemingImage } from '../services/SettingsService.js'
 import GeneralBrandingTab from './tabs/GeneralBrandingTab.vue'
 import ThemingTab from './tabs/ThemingTab.vue'
@@ -79,7 +77,6 @@ export default {
 			themingImages: {},
 			errors: {},
 			saving: false,
-			saveMessage: '',
 		}
 	},
 	mounted() {
@@ -102,24 +99,23 @@ export default {
 			try {
 				const result = await uploadMedia(slot, file)
 				this.$set(this.values, slot, result.fileName)
-				this.saveMessage = 'Image uploaded.'
+				toastSuccess('Image uploaded.')
 			} catch (e) {
-				this.saveMessage = 'Image upload failed.'
+				toastError('Image upload failed.')
 			}
 		},
 		async onThemingImageUpload(key, file) {
 			try {
 				const result = await uploadThemingImage(key, file)
 				this.$set(this.themingImages, key, result.url)
-				this.saveMessage = 'Image uploaded and applied instance-wide.'
+				toastSuccess('Image uploaded and applied instance-wide.')
 			} catch (e) {
-				this.saveMessage = (e.response && e.response.data && e.response.data.error) || 'Image upload failed.'
+				toastError((e.response && e.response.data && e.response.data.error) || 'Image upload failed.')
 			}
 		},
 		async onSave(keys, target = 'general') {
 			this.saving = true
 			this.errors = {}
-			this.saveMessage = ''
 			const payload = {}
 			keys.forEach((k) => {
 				payload[k] = this.values[k] ?? ''
@@ -130,12 +126,13 @@ export default {
 				} else {
 					await saveSettings(payload)
 				}
-				this.saveMessage = 'Settings saved.'
+				toastSuccess('Settings saved.')
 			} catch (e) {
 				if (e.response && e.response.data && e.response.data.errors) {
 					this.errors = e.response.data.errors
+					toastError('Not saved: please fix the highlighted fields.')
 				} else {
-					this.saveMessage = 'Save failed.'
+					toastError('Save failed. Please try again.')
 				}
 			} finally {
 				this.saving = false

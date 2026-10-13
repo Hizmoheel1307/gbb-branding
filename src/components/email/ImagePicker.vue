@@ -29,6 +29,7 @@
 
 <script>
 import { uploadEmailImage, emailImageUrl } from '../../services/SettingsService.js'
+import { toastError } from '../../toast.js'
 
 export default {
 	name: 'ImagePicker',
@@ -67,6 +68,7 @@ export default {
 				this.$emit('input', result.id)
 			} catch (e) {
 				this.error = (e.response && e.response.data && e.response.data.error) || 'Upload failed.'
+				toastError(this.error)
 			} finally {
 				this.busy = false
 			}

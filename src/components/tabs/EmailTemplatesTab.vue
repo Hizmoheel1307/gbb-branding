@@ -94,7 +94,6 @@
 					{{ busy === 'test' ? 'Sending…' : 'Send test' }}
 				</button>
 			</div>
-			<p v-if="message" :class="messageOk ? 'ok-text' : 'error-text'">{{ message }}</p>
 
 			<div v-if="preview" class="preview">
 				<div class="preview__bar">
@@ -114,6 +113,7 @@
 
 <script>
 import WelcomeDesigner from '../email/WelcomeDesigner.vue'
+import { toastSuccess, toastError } from '../../toast.js'
 import {
 	fetchEmailTemplates, saveEmailOverride, resetEmailOverride, saveWelcomeEmail, previewEmail, sendTestTemplate,
 } from '../../services/SettingsService.js'
@@ -184,6 +184,7 @@ export default {
 				this.loaded = true
 			} catch (e) {
 				this.loadError = 'Could not load email templates.'
+				toastError(this.loadError)
 			}
 		},
 		isCustomised(id) {
@@ -200,8 +201,7 @@ export default {
 			}
 		},
 		flash(text, ok = true) {
-			this.message = text
-			this.messageOk = ok
+			ok ? toastSuccess(text) : toastError(text)
 		},
 		errorOf(e, fallback) {
 			return (e.response && e.response.data && e.response.data.error) || fallback
@@ -231,7 +231,7 @@ export default {
 			try {
 				await this.persist()
 				this.preview = await previewEmail(this.selectedId)
-				this.flash('Saved. Preview below.')
+				this.flash('Saved. Preview is shown below.')
 			} catch (e) {
 				this.flash(this.errorOf(e, 'Preview failed.'), false)
 			} finally {

@@ -125,6 +125,7 @@
 
 <script>
 import { fetchEmailStatus, setEmailOverride, sendTestEmail } from '../../services/SettingsService.js'
+import { toastSuccess, toastError } from '../../toast.js'
 
 const BADGES = {
 	active: { tone: 'ok', label: 'Active', text: 'Branded template is in use.' },
@@ -188,8 +189,14 @@ export default {
 			this.toggling = true
 			try {
 				this.status = await setEmailOverride(enabled)
+				if (this.status.lastError) {
+					toastError(this.status.lastError)
+				} else {
+					toastSuccess(enabled ? 'Branded footer switched on.' : 'Branded footer switched off.')
+				}
 			} catch (e) {
 				this.statusError = 'Could not change the setting.'
+				toastError(this.statusError)
 			} finally {
 				this.toggling = false
 			}
@@ -202,8 +209,14 @@ export default {
 				if (data.status) {
 					this.status = data.status
 				}
+				if (data.result.ok) {
+					toastSuccess('Test email sent to ' + data.result.to + (data.result.branded ? '.' : ', but it was NOT branded.'))
+				} else {
+					toastError('Test email failed: ' + data.result.error)
+				}
 			} catch (e) {
 				this.testResult = { ok: false, error: 'Request failed: ' + (e.message || 'unknown error'), at: new Date().toISOString() }
+				toastError(this.testResult.error)
 			} finally {
 				this.sending = false
 			}

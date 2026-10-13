@@ -6,12 +6,14 @@ namespace OCA\GovMailBranding\AppInfo;
 
 use OCA\GovMailBranding\Listener\FirstLoginListener;
 use OCA\GovMailBranding\Listener\GlobalStyleListener;
+use OCA\GovMailBranding\Listener\InlineImagesListener;
 use OCA\GovMailBranding\SetupChecks\EmailTemplateCheck;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
+use OCP\Mail\Events\BeforeMessageSent;
 use OCP\User\Events\UserFirstTimeLoggedInEvent;
 
 class Application extends App implements IBootstrap {
@@ -29,6 +31,7 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
 		$context->registerEventListener(BeforeTemplateRenderedEvent::class, GlobalStyleListener::class);
 		$context->registerEventListener(UserFirstTimeLoggedInEvent::class, FirstLoginListener::class);
+		$context->registerEventListener(BeforeMessageSent::class, InlineImagesListener::class);
 		$context->registerSetupCheck(EmailTemplateCheck::class);
 	}
 

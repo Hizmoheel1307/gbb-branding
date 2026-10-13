@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OCA\GovMailBranding\Controller;
 
-use OC\Mail\EMailTemplate;
 use OCA\GovMailBranding\Service\EmailCatalog;
 use OCA\GovMailBranding\Service\EmailCustomizationService;
 use OCA\GovMailBranding\Service\WelcomeMailService;
@@ -173,11 +172,11 @@ class EmailTemplatesController extends Controller {
 		try {
 			$template = $this->buildSample($emailId, $user);
 			$html = $template->renderHtml();
-			if ($template instanceof EMailTemplate) {
-				foreach ($template->getInlineImages() as $img) {
-					$html = str_replace('cid:' . $img['name'], 'data:' . $img['mimeType'] . ';base64,' . base64_encode($img['content']), $html);
-				}
-			}
+			// Show embedded images in the browser preview (works on every NC version).
+			$html = (string)preg_replace_callback('/cid:gmb\d+-([a-z0-9-]{1,48})/', function ($m) {
+				$img = $this->svc->loadImage($m[1]);
+				return $img === null ? $m[0] : 'data:' . $img['mime'] . ';base64,' . base64_encode($img['content']);
+			}, $html);
 			return new JSONResponse([
 				'subject' => $template->renderSubject(),
 				'html' => $html,

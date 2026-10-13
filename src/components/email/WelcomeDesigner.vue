@@ -176,6 +176,7 @@
 <script>
 import ImagePicker from './ImagePicker.vue'
 import { fetchWelcomePreset } from '../../services/SettingsService.js'
+import { toastSuccess, toastError } from '../../toast.js'
 
 const PALETTE = ['#f1effc', '#f4f6fb', '#eaf4fd', '#e9f7f3', '#111111']
 
@@ -229,6 +230,9 @@ export default {
 				const { welcome } = await fetchWelcomePreset()
 				Object.keys(welcome).forEach((k) => this.$set(this.w, k, welcome[k]))
 				this.open = {}
+				toastSuccess('GovMail design loaded. Click Save to keep it.')
+			} catch (e) {
+				toastError('Could not load the GovMail design.')
 			} finally {
 				this.loadingPreset = false
 			}

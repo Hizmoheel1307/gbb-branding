@@ -131,7 +131,7 @@ class EmailCustomizationService {
 				'id' => preg_match('/^[a-z0-9]{1,16}$/', (string)($s['id'] ?? '')) ? $s['id'] : bin2hex(random_bytes(4)),
 				'bg' => $this->color($s['bg'] ?? '', '#f4f6fb'),
 				'layout' => in_array($s['layout'] ?? '', self::LAYOUTS, true) ? $s['layout'] : 'stacked',
-				'columns' => in_array((int)($s['columns'] ?? 2), [2, 3, 4], true) ? (int)$s['columns'] : 2,
+				'columns' => in_array((int)($s['columns'] ?? 2), [2, 3, 4], true) ? (int)($s['columns'] ?? 2) : 2,
 				'icon' => $this->imageId($s['icon'] ?? ''),
 				'title' => $this->text($s['title'] ?? '', 200),
 				'text' => $this->text($s['text'] ?? '', 2000),

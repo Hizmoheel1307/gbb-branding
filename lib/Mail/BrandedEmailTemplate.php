@@ -277,8 +277,18 @@ class BrandedEmailTemplate extends EMailTemplate {
 			return null;
 		}
 		$name = 'gmb' . (++$this->imageCounter) . '-' . $id;
-		$this->inlineImages[] = ['name' => $name, 'content' => $image['content'], 'mimeType' => $image['mime']];
+		if (self::nativeInlineImages()) {
+			// Newer Nextcloud attaches these itself in Message::useTemplate().
+			$this->inlineImages[] = ['name' => $name, 'content' => $image['content'], 'mimeType' => $image['mime']];
+		}
+		// Otherwise (e.g. Nextcloud 34.0.1) InlineImagesListener attaches every
+		// cid:gmb… image right before the message is sent.
 		return $this->embedded[$id] = 'cid:' . $name;
+	}
+
+	/** Whether this Nextcloud's EMailTemplate/Message embed template images themselves. */
+	public static function nativeInlineImages(): bool {
+		return method_exists(EMailTemplate::class, 'getInlineImages');
 	}
 
 	private function beforeFooter(): void {
