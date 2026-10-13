@@ -113,6 +113,76 @@ class BrandedEmailTemplate extends EMailTemplate {
 		return trim((string)($this->cfg[$key] ?? ''));
 	}
 
+	/**
+	 * Header with a bigger logo and no coloured circle behind it, plus
+	 * tighter spacing. Built by post-processing Nextcloud's own header so the
+	 * logo source (URL or embedded) stays whatever this Nextcloud version uses.
+	 */
+	public function addHeader(): void {
+		if ($this->headerAdded) {
+			return;
+		}
+		$this->resolve();
+		$header = null;
+		try {
+			$header = $this->svc?->getHeader();
+		} catch (Throwable) {
+		}
+		if ($header === null || !$header['enabled']) {
+			parent::addHeader();
+			return;
+		}
+
+		if ($header['compact']) {
+			$this->compactSpacing();
+		}
+
+		$start = strlen($this->htmlBody);
+		parent::addHeader();
+		try {
+			$this->htmlBody = substr($this->htmlBody, 0, $start)
+				. self::restyleHeader(substr($this->htmlBody, $start), $header);
+		} catch (Throwable) {
+			// keep Nextcloud's header as rendered
+		}
+	}
+
+	/** @internal public for tests */
+	public static function restyleHeader(string $html, array $header): string {
+		$w = (int)$header['logo_width'];
+		$bg = $header['background'] === 'color' ? $header['background_color'] : 'transparent';
+		$pad = $header['background'] === 'color' ? '20px 16px' : '24px 0 4px';
+		$radius = $header['background'] === 'color' ? 'border-radius:8px;' : '';
+
+		// The logo container is 150px wide by default.
+		$html = (string)preg_replace('/(class="container"[^>]*?)width:150px/', '${1}width:' . ($w + 40) . 'px', $html, 1);
+		// The coloured circle behind the logo.
+		$html = (string)preg_replace('/<center data-parsed="" style="[^"]*">/', '<center data-parsed="" style="background-color:' . $bg . ';padding:' . $pad . ';' . $radius . '">', $html, 1);
+		// Logo size: Outlook needs a width attribute, CSS alone is ignored.
+		$html = (string)preg_replace_callback('/<img class="logo float-center"[^>]*>/', static function ($m) use ($w) {
+			$img = (string)preg_replace('/\s(width|height)="\d+"/', '', $m[0]);
+			$img = (string)preg_replace('/max-height:\d+px;max-width:\d+px;width:auto;height:auto/', 'max-width:' . $w . 'px;width:' . $w . 'px;height:auto', $img);
+			return str_replace('<img ', '<img width="' . $w . '" ', $img);
+		}, $html, 1);
+		// Space under the header (Outlook renders the default as ~80px).
+		return self::shrinkSpacers($html, 16);
+	}
+
+	private function compactSpacing(): void {
+		$this->heading = self::shrinkSpacers($this->heading, 12);
+		$this->button = self::shrinkSpacers($this->button, 16);
+		$this->buttonGroup = self::shrinkSpacers($this->buttonGroup, 16);
+		$this->bodyText = str_replace('padding-bottom:30px', 'padding-bottom:14px', $this->bodyText);
+	}
+
+	private static function shrinkSpacers(string $tpl, int $px): string {
+		return (string)preg_replace(
+			'/(<td height=")\d+px("[^>]*?font-size:)\d+px([^>]*?line-height:)\d+px/',
+			'${1}' . $px . 'px${2}' . $px . 'px${3}' . $px . 'px',
+			$tpl,
+		);
+	}
+
 	public function setSubject(string $subject): void {
 		$this->resolve();
 		if ($this->mode !== 'none' && $this->cfgText('subject') !== '') {

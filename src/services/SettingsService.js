@@ -116,3 +116,7 @@ export async function sendTestTemplate(emailId, to) {
 export async function fetchWelcomePreset() {
 	return (await axios.get(generateUrl(ET + '/welcome-preset'))).data
 }
+
+export async function saveEmailHeader(header) {
+	return (await axios.post(generateUrl(ET + '/header'), { header })).data
+}

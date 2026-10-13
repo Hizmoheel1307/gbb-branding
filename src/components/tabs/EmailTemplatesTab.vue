@@ -10,6 +10,38 @@
 		<p v-else-if="!loaded" class="field-hint">Loading…</p>
 
 		<template v-else>
+			<details v-if="header" class="header-card">
+				<summary>
+					<strong>Header and spacing</strong>
+					<span class="field-hint">applies to every email</span>
+				</summary>
+				<label class="checkbox-row">
+					<input v-model="header.enabled" type="checkbox">
+					Use the GovMail header (larger logo, no circle behind it)
+				</label>
+				<fieldset :disabled="!header.enabled">
+					<div class="field-row two">
+						<div>
+							<label>Logo width: {{ header.logo_width }} px</label>
+							<input v-model.number="header.logo_width" type="range" min="60" max="400" step="10">
+						</div>
+						<div>
+							<label>Behind the logo</label>
+							<select v-model="header.background">
+								<option value="none">Nothing (white)</option>
+								<option value="color">Colour band</option>
+							</select>
+							<input v-if="header.background === 'color'" v-model="header.background_color" type="color" style="margin-top:6px">
+						</div>
+					</div>
+					<label class="checkbox-row">
+						<input v-model="header.compact" type="checkbox">
+						Compact spacing between logo, heading, text and buttons
+					</label>
+				</fieldset>
+				<button type="button" class="primary" :disabled="busy !== ''" @click="saveHeaderSettings">Save header</button>
+			</details>
+
 			<div class="picker">
 				<label for="email-picker">Email</label>
 				<select id="email-picker" v-model="selectedId" @change="onSelect">
@@ -115,7 +147,7 @@
 import WelcomeDesigner from '../email/WelcomeDesigner.vue'
 import { toastSuccess, toastError } from '../../toast.js'
 import {
-	fetchEmailTemplates, saveEmailOverride, resetEmailOverride, saveWelcomeEmail, previewEmail, sendTestTemplate,
+	fetchEmailTemplates, saveEmailHeader, saveEmailOverride, resetEmailOverride, saveWelcomeEmail, previewEmail, sendTestTemplate,
 } from '../../services/SettingsService.js'
 
 const WELCOME = 'settings.Welcome'
@@ -136,6 +168,7 @@ export default {
 			overrides: {},
 			globalPlaceholders: [],
 			presetImages: [],
+			header: null,
 			welcome: null,
 			selectedId: WELCOME,
 			form: { ...EMPTY },
@@ -179,6 +212,7 @@ export default {
 				this.overrides = data.overrides || {}
 				this.globalPlaceholders = data.globalPlaceholders || []
 				this.presetImages = data.presetImages || []
+				this.header = data.header || null
 				this.welcome = data.welcome
 				this.onSelect()
 				this.loaded = true
@@ -224,6 +258,18 @@ export default {
 			} else {
 				const res = await saveEmailOverride(this.selectedId, this.form)
 				this.$set(this.overrides, this.selectedId, res.override)
+			}
+		},
+		async saveHeaderSettings() {
+			this.busy = 'save'
+			try {
+				const res = await saveEmailHeader(this.header)
+				this.header = res.header
+				this.flash('Header saved. It applies to all emails.')
+			} catch (e) {
+				this.flash(this.errorOf(e, 'Could not save the header.'), false)
+			} finally {
+				this.busy = ''
 			}
 		},
 		async saveAndPreview() {
@@ -364,6 +410,20 @@ export default {
 	font-size: 13px;
 	margin-bottom: 20px;
 }
+.header-card {
+	border: 1px solid var(--color-border, #ddd);
+	border-radius: var(--border-radius, 6px);
+	padding: 12px 16px;
+	margin-bottom: 20px;
+}
+.header-card summary {
+	cursor: pointer;
+	display: flex;
+	gap: 10px;
+	align-items: baseline;
+	margin-bottom: 4px;
+}
+.header-card[open] summary { margin-bottom: 14px; }
 .picker {
 	display: flex;
 	flex-direction: column;

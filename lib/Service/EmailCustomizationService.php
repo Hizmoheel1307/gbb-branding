@@ -25,6 +25,7 @@ class EmailCustomizationService {
 	private const OVERRIDES_KEY = 'email_overrides';
 	private const WELCOME_KEY = 'email_welcome';
 	private const SEEN_KEY = 'email_seen_ids';
+	private const HEADER_KEY = 'email_header';
 	private const IMAGE_FOLDER = 'email-images';
 
 	public const BODY_MODES = ['keep', 'before', 'after', 'replace'];
@@ -166,6 +167,41 @@ class EmailCustomizationService {
 			'sections' => $sections,
 		];
 		$this->writeJson(self::WELCOME_KEY, $clean);
+		return $clean;
+	}
+
+	// ------------------------------------------------------------------- header
+
+	/**
+	 * Header and spacing for ALL emails: logo size, background behind the
+	 * logo, and tighter spacing than Nextcloud's default (which Outlook
+	 * renders very tall).
+	 */
+	public static function defaultHeader(): array {
+		return [
+			'enabled' => true,
+			'logo_width' => 220,
+			'background' => 'none',
+			'background_color' => '#1B8018',
+			'compact' => true,
+		];
+	}
+
+	public function getHeader(): array {
+		return array_merge(self::defaultHeader(), $this->readJson(self::HEADER_KEY));
+	}
+
+	public function saveHeader(array $input): array {
+		$width = (int)($input['logo_width'] ?? 220);
+		$bg = (string)($input['background'] ?? 'none');
+		$clean = [
+			'enabled' => (bool)($input['enabled'] ?? true),
+			'logo_width' => max(60, min(400, $width)),
+			'background' => in_array($bg, ['none', 'color'], true) ? $bg : 'none',
+			'background_color' => $this->color($input['background_color'] ?? '', '#1B8018'),
+			'compact' => (bool)($input['compact'] ?? true),
+		];
+		$this->writeJson(self::HEADER_KEY, $clean);
 		return $clean;
 	}
 

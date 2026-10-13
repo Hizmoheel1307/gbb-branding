@@ -74,6 +74,7 @@ class EmailTemplatesController extends Controller {
 			'welcome' => $this->svc->getWelcome(),
 			'globalPlaceholders' => EmailCatalog::GLOBAL_PLACEHOLDERS,
 			'presetImages' => $this->svc->presetImages(),
+			'header' => $this->svc->getHeader(),
 		]);
 	}
 
@@ -121,6 +122,13 @@ class EmailTemplatesController extends Controller {
 		} catch (\InvalidArgumentException $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
+	}
+
+	public function saveHeader(array $header = []): JSONResponse {
+		if ($this->admin() === null) {
+			return $this->denied();
+		}
+		return new JSONResponse(['header' => $this->svc->saveHeader($header)]);
 	}
 
 	/** The ready-made GovMail welcome design; the tab loads it into the form. */
