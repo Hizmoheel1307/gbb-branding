@@ -79,18 +79,18 @@
 			</div>
 
 			<div class="actions">
-				<button type="button" class="primary" :disabled="busy" @click="save">
+				<button type="button" class="primary" :disabled="busy !== ''" @click="save">
 					{{ busy === 'save' ? 'Saving…' : 'Save' }}
 				</button>
-				<button type="button" class="secondary" :disabled="busy" @click="saveAndPreview">
+				<button type="button" class="secondary" :disabled="busy !== ''" @click="saveAndPreview">
 					{{ busy === 'preview' ? 'Rendering…' : 'Save & preview' }}
 				</button>
-				<button v-if="!isWelcome && isCustomised(selectedId)" type="button" class="secondary" :disabled="busy" @click="reset">
+				<button v-if="!isWelcome && isCustomised(selectedId)" type="button" class="secondary" :disabled="busy !== ''" @click="reset">
 					Reset to default
 				</button>
 				<span class="spacer" />
 				<input v-model="testTo" type="email" placeholder="Test address (default: yours)">
-				<button type="button" class="secondary" :disabled="busy" @click="sendTest">
+				<button type="button" class="secondary" :disabled="busy !== ''" @click="sendTest">
 					{{ busy === 'test' ? 'Sending…' : 'Send test' }}
 				</button>
 			</div>
