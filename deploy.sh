@@ -86,6 +86,9 @@ sudo -u www-data php "\$NEXTCLOUD/occ" app:disable "\$APP_NAME" || true
 sudo -u www-data php "\$NEXTCLOUD/occ" app:enable "\$APP_NAME"
 sudo -u www-data php "\$NEXTCLOUD/occ" maintenance:repair
 
+echo "Email branding status on this node:"
+sudo -u www-data php "\$NEXTCLOUD/occ" govmailbranding:email:override status || true
+
 rm -f "/tmp/\$ARCHIVE"
 
 echo "Remote deployment steps complete."

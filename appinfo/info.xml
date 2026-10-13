@@ -5,7 +5,7 @@
     <name>GovMail Branding</name>
     <summary>Custom branding for Nextcloud (theme, logo, email branding)</summary>
     <description>Applies custom branding across the Nextcloud UI and outgoing emails.</description>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
     <licence>agpl</licence>
     <author>Your Name</author>
     <namespace>GovMailBranding</namespace>
@@ -13,6 +13,21 @@
     <dependencies>
         <nextcloud min-version="28" max-version="34"/>
     </dependencies>
+    <repair-steps>
+        <install>
+            <step>OCA\GovMailBranding\Migration\ReconcileEmailTemplate</step>
+        </install>
+        <post-migration>
+            <step>OCA\GovMailBranding\Migration\ReconcileEmailTemplate</step>
+        </post-migration>
+        <uninstall>
+            <step>OCA\GovMailBranding\Migration\RemoveEmailTemplate</step>
+        </uninstall>
+    </repair-steps>
+    <commands>
+        <command>OCA\GovMailBranding\Command\TestEmail</command>
+        <command>OCA\GovMailBranding\Command\EmailOverride</command>
+    </commands>
     <settings>
         <admin>OCA\GovMailBranding\Settings\Admin</admin>
         <admin-section>OCA\GovMailBranding\Settings\AdminSection</admin-section>

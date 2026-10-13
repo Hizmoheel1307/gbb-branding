@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace OCA\GovMailBranding\AppInfo;
 
-use OCA\GovMailBranding\Listener\LoginPageListener;
 use OCA\GovMailBranding\Listener\GlobalStyleListener;
-use OCA\GovMailBranding\Mail\BrandedEmailTemplate;
+use OCA\GovMailBranding\SetupChecks\EmailTemplateCheck;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
-use OCP\IConfig;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'govmailbranding';
@@ -27,25 +25,18 @@ class Application extends App implements IBootstrap {
 	 * DI container, so nothing to register here for those.
 	 */
 	public function register(IRegistrationContext $context): void {
-		$context->registerEventListener(BeforeTemplateRenderedEvent::class, LoginPageListener::class);
 		$context->registerEventListener(BeforeTemplateRenderedEvent::class, GlobalStyleListener::class);
-		$this->registerBrandedMailTemplate();
+		$context->registerSetupCheck(EmailTemplateCheck::class);
 	}
 
-	/**
-	 * Points Nextcloud's mailer at our custom footer template. Guarded so
-	 * it only writes to config once, not on every request. Known risk:
-	 * https://github.com/nextcloud/server/issues/45392 - verify with a
-	 * real test email, don't rely on absence of errors alone.
+	/*
+	 * mail_template_class is NOT written here any more. Writing config.php
+	 * from register() ran on every request on every node and skipped any
+	 * check that the template actually renders. EmailTemplateGuard owns that
+	 * key now; it is applied by the repair step (app:enable /
+	 * maintenance:repair), the admin UI toggle, or
+	 * `occ govmailbranding:email:override`.
 	 */
-	private function registerBrandedMailTemplate(): void {
-		/** @var IConfig $config */
-		$config = $this->getContainer()->get(IConfig::class);
-		$current = $config->getSystemValue('mail_template_class', '');
-		if ($current !== BrandedEmailTemplate::class) {
-			$config->setSystemValue('mail_template_class', BrandedEmailTemplate::class);
-		}
-	}
 
 	/**
 	 * Runtime bootstrapping, run on every request after registration.
