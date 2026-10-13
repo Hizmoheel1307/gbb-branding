@@ -25,6 +25,7 @@ use Throwable;
 class WelcomeMailService {
 	private const APP_ID = 'govmailbranding';
 	public const SENT_KEY = 'welcome_sent';
+	private const SENDING_KEY = 'welcome_sending';
 	private const HELPER = 'OCA\\Settings\\Mailer\\NewUserMailHelper';
 
 	public function __construct(
@@ -73,6 +74,28 @@ class WelcomeMailService {
 			return $result;
 		}
 
+		// The first-login send runs in the background with cron as a fallback;
+		// a short claim stops both from sending at the same moment.
+		if (!$force) {
+			$claimed = (int)$this->config->getUserValue($uid, self::APP_ID, self::SENDING_KEY, '0');
+			if ($claimed > time() - 300) {
+				$result['skipped'] = true;
+				$result['error'] = 'Welcome email is already being sent.';
+				return $result;
+			}
+			$this->config->setUserValue($uid, self::APP_ID, self::SENDING_KEY, (string)time());
+		}
+
+		try {
+			return $this->deliver($user, $uid, $to, $markSent, $result);
+		} finally {
+			if (!$force) {
+				$this->config->deleteUserValue($uid, self::APP_ID, self::SENDING_KEY);
+			}
+		}
+	}
+
+	private function deliver(IUser $user, string $uid, ?string $to, bool $markSent, array $result): array {
 		$address = $to !== null && $to !== '' ? $to : $this->resolveAddress($user);
 		if ($address === null || !$this->mailer->validateMailAddress($address)) {
 			$result['skipped'] = true;

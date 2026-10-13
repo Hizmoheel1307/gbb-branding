@@ -21,8 +21,13 @@
 				<input v-model="w.login_as_email" type="checkbox">
 				If the account has no email address, send to the login name when it is an email address
 			</label>
+			<label class="checkbox-row" style="margin-left:24px">
+				<input v-model="w.send_now" type="checkbox" :disabled="!w.first_login">
+				Send immediately (within seconds) instead of waiting for the next cron run
+			</label>
 			<p class="field-hint">
-				Emails are queued and sent by cron within a few minutes of the first sign-in.
+				The email is sent in the background, so signing in is never slowed down. If it can't go out
+				straight away (for example the mail server is unreachable), cron sends it a few minutes later.
 				Admin-created accounts with "send welcome email" also get this design.
 			</p>
 		</fieldset>

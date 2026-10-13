@@ -92,6 +92,7 @@ class EmailCustomizationService {
 		return [
 			'enabled' => false,
 			'first_login' => false,
+			'send_now' => true,
 			'login_as_email' => true,
 			'subject' => 'Welcome to {instance_name}',
 			'heading' => 'Welcome {displayname}',
@@ -153,6 +154,7 @@ class EmailCustomizationService {
 		$clean = [
 			'enabled' => (bool)($input['enabled'] ?? false),
 			'first_login' => (bool)($input['first_login'] ?? false),
+			'send_now' => (bool)($input['send_now'] ?? true),
 			'login_as_email' => (bool)($input['login_as_email'] ?? true),
 			'subject' => $this->text($input['subject'] ?? '', 300),
 			'heading' => $this->text($input['heading'] ?? '', 300),
