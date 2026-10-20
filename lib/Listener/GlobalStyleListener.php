@@ -54,14 +54,14 @@ class GlobalStyleListener implements IEventListener {
 		$hideCommunity = $this->getBool('email_hide_community_footer');
 		$hideSocial = $this->getBool('email_hide_social_links');
 
+		$rules = [];
 		if ($hidePromo && $hideCommunity && $hideSocial) {
 			// All three checked - hide the whole confirmed block outright,
 			// the most reliable option since this exact class is
 			// independently documented by the Nextcloud community.
-			return '.development-notice { display: none !important; }';
+			$rules[] = '.development-notice { display: none !important; }';
+			$hidePromo = $hideCommunity = $hideSocial = false;
 		}
-
-		$rules = [];
 		if ($hidePromo) {
 			$rules[] = '#open-reasons-use-nextcloud-pdf { display: none !important; }';
 		}
@@ -72,7 +72,31 @@ class GlobalStyleListener implements IEventListener {
 			$rules[] = '.development-notice .social-icons, .development-notice ul { display: none !important; }';
 		}
 
+		// Mail app fixes (on unless switched off)
+		if ($this->config->getAppValue('govmailbranding', 'fix_mail_preview', '1') !== '0') {
+			// Mail caps the 2-line preview at a fixed 45px; with larger text
+			// (phone text size, browser zoom) the second line is cut in half.
+			$rules[] = '.envelope .envelope__preview-text { max-height: none !important; }';
+		}
+		if ($this->config->getAppValue('govmailbranding', 'fix_mail_touch_actions', '1') !== '0') {
+			// The read/important/delete buttons appear on mouse hover; on a phone a
+			// tap leaves the row "hovered" and the buttons cover the sender.
+			$rules[] = '@media (hover: none) { .envelope .list-item-content__quick-actions { display: none !important; } }';
+		}
+
+		$custom = self::sanitizeCss($this->config->getAppValue('govmailbranding', 'custom_css', ''));
+		if ($custom !== '') {
+			$rules[] = "/* GovMail Branding: custom CSS */\n" . $custom;
+		}
+
 		return implode("\n", $rules);
+	}
+
+	/** Keep admin CSS inside its <style> element. */
+	public static function sanitizeCss(string $css): string {
+		$css = (string)preg_replace('#</?\s*style[^>]*>#i', '', $css);
+		$css = str_ireplace(['</', '<!--', '-->'], ['', '', ''], $css);
+		return trim(mb_substr($css, 0, 50000));
 	}
 
 	private function getBool(string $key): bool {

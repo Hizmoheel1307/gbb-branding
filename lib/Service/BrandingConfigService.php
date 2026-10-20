@@ -36,6 +36,9 @@ class BrandingConfigService {
 
 		// Custom code
 		'custom_css', 'custom_js',
+
+		// Fixes for other apps' CSS ('0' = off, anything else = on)
+		'fix_mail_preview', 'fix_mail_touch_actions',
 	];
 
 	public function __construct(

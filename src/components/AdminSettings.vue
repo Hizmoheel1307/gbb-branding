@@ -36,6 +36,12 @@
 				:saving="saving"
 				@update="onFieldUpdate"
 				@save="(keys) => onSave(keys, 'general')" />
+			<CustomCssTab
+				v-else-if="activeTab === 'css'"
+				:values="values"
+				:saving="saving"
+				@update="onFieldUpdate"
+				@save="(keys) => onSave(keys, 'general')" />
 			<NotificationsTab
 				v-else-if="activeTab === 'notifications'"
 				:instance-label="values.theming_name || values.general_portal_name || ''" />
@@ -59,6 +65,7 @@ import ThemingTab from './tabs/ThemingTab.vue'
 import EmailBrandingTab from './tabs/EmailBrandingTab.vue'
 import EmailTemplatesTab from './tabs/EmailTemplatesTab.vue'
 import NotificationsTab from './tabs/NotificationsTab.vue'
+import CustomCssTab from './tabs/CustomCssTab.vue'
 
 const TABS = [
 	{ id: 'general', label: 'General Branding' },
@@ -73,7 +80,7 @@ const TABS = [
 
 export default {
 	name: 'AdminSettings',
-	components: { GeneralBrandingTab, ThemingTab, EmailBrandingTab, EmailTemplatesTab, NotificationsTab },
+	components: { GeneralBrandingTab, ThemingTab, EmailBrandingTab, EmailTemplatesTab, NotificationsTab, CustomCssTab },
 	data() {
 		return {
 			tabs: TABS,
