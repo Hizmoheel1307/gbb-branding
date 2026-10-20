@@ -23,6 +23,8 @@ return [
 		['name' => 'email_templates#image', 'url' => '/email-templates/image/{id}', 'verb' => 'GET'],
 		['name' => 'email_templates#preview', 'url' => '/email-templates/preview', 'verb' => 'POST'],
 		['name' => 'email_templates#sendTest', 'url' => '/email-templates/test', 'verb' => 'POST'],
+		['name' => 'notification_branding#index', 'url' => '/notification-branding', 'verb' => 'GET'],
+		['name' => 'notification_branding#save', 'url' => '/notification-branding', 'verb' => 'POST'],
 		['name' => 'media#get', 'url' => '/media/{fileName}', 'verb' => 'GET'],
 	],
 ];

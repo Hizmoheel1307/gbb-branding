@@ -5,7 +5,7 @@
     <name>GovMail Branding</name>
     <summary>Custom branding for Nextcloud (theme, logo, email branding)</summary>
     <description>Applies custom branding across the Nextcloud UI and outgoing emails.</description>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <licence>agpl</licence>
     <author>Your Name</author>
     <namespace>GovMailBranding</namespace>

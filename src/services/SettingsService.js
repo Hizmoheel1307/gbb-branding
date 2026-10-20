@@ -120,3 +120,11 @@ export async function fetchWelcomePreset() {
 export async function saveEmailHeader(header) {
 	return (await axios.post(generateUrl(ET + '/header'), { header })).data
 }
+
+export async function fetchNotificationBranding() {
+	return (await axios.get(generateUrl('/apps/govmailbranding/notification-branding'))).data
+}
+
+export async function saveNotificationBranding(settings) {
+	return (await axios.post(generateUrl('/apps/govmailbranding/notification-branding'), { settings })).data
+}
