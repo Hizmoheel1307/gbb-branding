@@ -39,6 +39,7 @@ class BrandingConfigService {
 
 		// Fixes for other apps' CSS ('0' = off, anything else = on)
 		'fix_mail_preview', 'fix_mail_touch_actions',
+		'fix_mail_subject', 'mail_subject_size_desktop', 'mail_subject_size_mobile', 'mail_subject_lines_mobile',
 	];
 
 	public function __construct(
